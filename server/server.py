@@ -39,13 +39,16 @@ def handle_invalid_usage(error):
     app.logger.exception(error)
 
     if isinstance(error, SyntaxError):
-        message = "Malformed experiment file: " + str(error)
+        message = "Malformed data file: " + str(error)
     else:
         message = str(error)
 
     app.logger.exception(error)
-    message  = "%s\n\n%s" % (message, traceback.format_exc())
-    return Response(message, 500)
+
+    return Response(json.dumps({
+        "message": message.strip(),
+        "traceback": traceback.format_exc().strip(),
+    }), 500, mimetype='application/json')
 
 
 @app.route('/',methods=['GET'])
@@ -138,8 +141,12 @@ def plot():
 @app.route('/plugin/list',methods=['GET', 'POST'])
 def plugin_list():
     request_data = request.get_json(force=True)
-    if isinstance(request_data, str) and request_data.lower() == "reload":
-        plugins.reload_plugins()
+    try:
+        if str(request_data).lower() == "reload":
+            app.logger.info("Reloading plugins")
+            plugins.reload_plugins()
+    except:
+        pass
 
     ret = plugins.plugins_images()
     return Response(json.dumps(ret), mimetype='application/json')

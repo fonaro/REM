@@ -24,7 +24,7 @@ class DataSource(object):
 
     def __init__(self, file_path, export_path="exports"):
         if not os.path.isfile(file_path):
-            raise Exception("Data file not found")
+            raise Exception("Data file %s not found" % file_path)
 
         self.__data_file = file_path
 

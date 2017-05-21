@@ -16,6 +16,11 @@ html,body{
     height:100%;
 }
 
+.header-location {
+	color:white;
+	width:100%;
+}
+
 .container-fluid.main{
 	color:white;
     //overflow-y: hidden;
@@ -48,14 +53,15 @@ html,body{
 /*header definitions*/
 .header{
 	background-color: black;
-	height: 100px;
+	height: 50px;
 	color: white;
-	line-height: 100px;
+	line-height: 50px;
+	font-size: 30px;
 }
 
 #logo{
 	width: auto;
-	height: 90%;
+	height: 40px;
 	float: left;
 	margin: 5px;
 }
@@ -89,11 +95,17 @@ h1{
 
 #curr-dir{
 	padding: 7px;
+	margin: 0;
 	background-color: #505050;
+	float: left;
 }
 
 #selected-exp{
 	padding: 7px;
+	padding-left:20px;
+	margin: 0;
+
+	overflow: hidden;
 	background-color: #3db1c8;
 }
 
@@ -109,12 +121,16 @@ select,datalist{
 }
 
 
-#err-msg{
-	color: red;
+.error-block {
+	color: #FF5555;
 	background-color: black;
-	padding: 10px;
-	margin: 10px;
+	padding: 1em;
+	margin: 1em;
 	white-space: pre-wrap;
+
+    border-style: dashed;
+    border-color: white;
+    border-width: 1px;
 }
 
 .white, .white a {

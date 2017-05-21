@@ -14,7 +14,7 @@ from bokeh import charts
 
 def description():
     """ Should return the plugins description """
-    return None
+    return "Template Plugin"
 
 
 def image_path():

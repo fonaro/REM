@@ -33,16 +33,16 @@ def plot(data, x_axis, y_axis, group_by):
     figure_name = 'line'
     colors = list(Set1_9)
     parameters = []
-    i = 0
-    for val in value:
+    for i, val in enumerate(value):
         parameters.append({'col':group_by, 'value':val,
                            'x':x_axis, 'y':y_axis,
                            'color':colors[i%9]}) # , 'color':'red'
-        i+=1
+
     fig = plotting.figure(title=figure_name,sizing_mode='stretch_both',
                           x_axis_label=x_axis ,y_axis_label=y_axis ,
                           tools=['hover','crosshair','wheel_zoom','box_zoom','pan',
                                  'save','resize','reset'])
+
     with data.db_connection() as conn:
         dump = pd.DataFrame()
         for params in parameters:
