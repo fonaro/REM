@@ -198,3 +198,44 @@ function asyncDeletePreset(presets, onSuccess, onError) {
         error: _errorHandler(onError),
     })
 }
+
+
+// ##########################################################
+// # Cookie handling
+// # Taken from: https://www.w3schools.com/js/js_cookies.asp
+// ##########################################################
+
+
+function getCookies() {
+    try {
+        return JSON.parse(document.cookie)
+    } catch (e) {
+        return {}
+    }
+}
+
+function listCookies() {
+    return Object.keys(getCookies())
+}
+
+function cookieStartsWith(cname) {
+    var cookies = listCookies()
+    
+    var ret = Array();
+    for (var i = 0; i < cookies.length; i++) {
+        if (cookies[i].startsWith(cname)) {
+            ret.push(cookies[i]);
+        }
+    }
+    return ret;
+}
+
+function setCookie(cname, cvalue) {
+    var cookies = getCookies()
+    cookies[cname] = cvalue
+    document.cookie = JSON.stringify(cookies)
+}
+
+function getCookie(cname) {
+    return getCookies()[cname]
+}
