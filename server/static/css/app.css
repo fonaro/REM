@@ -109,6 +109,10 @@ h1{
 	background-color: #3db1c8;
 }
 
+#graph-display {
+    color: initial;
+}
+
 /*parameter selection definitions*/
 select,datalist{
 	color:black;

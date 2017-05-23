@@ -14,6 +14,9 @@ import  json
 from ast import literal_eval
 from collections import MutableMapping
 
+import logging
+
+
 class DataSource(object):
     """
     parses an experiment file into an sql table,
@@ -25,6 +28,8 @@ class DataSource(object):
     def __init__(self, file_path, export_path="exports"):
         if not os.path.isfile(file_path):
             raise Exception("Data file %s not found" % file_path)
+
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         self.__data_file = file_path
 
@@ -101,7 +106,7 @@ class DataSource(object):
             else:  # nothing changed since last scan
                 return None
         except Exception as e:
-            print "[ERROR]", e
+            self.logger.exception("Failed to read existing data status: %s", e)
             os.remove(self.__sql_file_path)
             return 0
                 
@@ -173,7 +178,7 @@ class DataSource(object):
                 if res:
                     dictlist.append(res)
         
-        #turn data into a dataFrame and delete middle stage
+        # Turn data into a DataFrame and delete middle stage
         frame = pd.DataFrame(dictlist)
         frame.sort_values('timestamp', inplace=True)
         try:
@@ -187,11 +192,4 @@ class DataSource(object):
                     [{'size': data_file_stats.st_size, 'timestamp': data_file_stats.st_mtime}])
                 attribute_data.to_sql('attributes', conn, if_exists='replace', index=False)
         except Exception as e:
-            print "[ERROR]", e
-
-
-
-    
-    
-    
-    
+            self.logger.exception("Failed to read existing data: %s", e)

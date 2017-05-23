@@ -5,12 +5,15 @@
 import os
 
 def filter_folders(dirs):
+    """ Filter hidden folders """
     for d in dirs:
         if d.startswith("."):
             continue
         yield d
 
+
 def filter_files(files):
+    """ Filter hidden files and DB files """
     for f in files:
         if f.endswith(".db"):
             continue

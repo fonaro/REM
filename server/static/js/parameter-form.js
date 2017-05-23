@@ -31,30 +31,27 @@ $(document).ready(function () {
 
 // Gathers all the parameters from the parameters form and returns a json
 function fetchFormParameters() {
-    //get the parameters (deep copy)
+    // Get the parameters (deep copy)
     var modelParamJson = $.extend(true, {}, state.selectedModelParameters);
 
-    //for each parameter,  fill the json with the actual value
+    // For each parameter, fill the json with the actual value
     $.each(state.selectedModelParameters, function (key, value) {
+        var selectedColumn = $('#input-' + key).val();
 
         switch (value.type) {
             case 'single':
-                var selectedColumn = $('#input-' + key).val();
-                //if we allow user to select a value in the column, send the column + value
+                // If we allow user to select a value in the column, send the column + value
                 if (value.filterByValue) {
                     var selectedValue = $('#input-' + key + "-val-select").val();
                     var dict = {};
                     dict[selectedColumn] = selectedValue;
                     modelParamJson[key] = dict;
-                }
-                //if not- send only the column name
-                else {
+                } else { // If not: send only the column name
                     modelParamJson[key] = selectedColumn;
                 }
                 break;
             case 'multiple':
-                var selectedColumn = $('#input-' + key).val();
-                //get all the selected values
+                // Get all the selected values
                 var allSelectedValues = [];
                 $('#input-' + key + '-val-select :selected').each(function (i, selected) {
                     allSelectedValues[i] = $(selected).text();
@@ -64,10 +61,10 @@ function fetchFormParameters() {
                 modelParamJson[key] = dict;
                 break;
             case 'radio':
-                modelParamJson[key] = $('#input-' + key).val();
+                modelParamJson[key] = selectedColumn;
                 break;
             case 'checkbox':
-                //get all the checked values
+                // Get all the checked values
                 var allCheckedValues = [];
                 $('#input-' + key + ' :selected').each(function (i, checked) {
                     allCheckedValues[i] = $(checked).text();
@@ -162,6 +159,7 @@ function findInDatalist(id, value) {
     $.each(options, function (i, val) {
         if (val.innerHTML == value) {
             isFound = true;
+            return false;
         }
     });
     return isFound;

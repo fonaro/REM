@@ -2,7 +2,8 @@
 @editor: Liran Funaro <funaro@cs.technion.ac.il>
 @author: Alex Nulman <anulman@cs.haifa.ac.il>
 
-this is teh main app, it takes no parameters, instead update config.py
+This is the main app, it takes no parameters (Use config.py).
+For the web-app API specification, see the communication API no the Wiki.
 """
 
 import os
@@ -29,8 +30,15 @@ app.config.from_object(__name__)
 app.config.update(config) # apply config file settings
 data_root_dir = app.config.get('data_root_dir', os.path.dirname(os.path.abspath(__file__)))
 
-app.logger.addHandler(logging.StreamHandler())
-app.logger.setLevel(logging.DEBUG)
+# Init logger for the entire system
+out_hdlr = logging.StreamHandler()
+fmt = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+out_hdlr.setFormatter(fmt)
+main_logger = logging.getLogger()
+main_logger.addHandler(out_hdlr)
+main_logger.setLevel(logging.DEBUG if config.get('debug', False) else logging.WARNING)
+app.logger.handlers = []
+app.logger.propagate = True
 
 
 @app.errorhandler(Exception)
@@ -42,8 +50,6 @@ def handle_invalid_usage(error):
         message = "Malformed data file: " + str(error)
     else:
         message = str(error)
-
-    app.logger.exception(error)
 
     return Response(json.dumps({
         "message": message.strip(),
@@ -64,6 +70,7 @@ def static_file(path):
 ########################################################################
 # Directory Listing
 ########################################################################
+
 
 @app.route('/listdir',methods=['POST'])
 def list_dir():
@@ -92,10 +99,10 @@ def list_dir():
 
 @app.route('/data/getcolumns',methods=['POST'])
 def get_columns():
-    '''
-    initialized the experiment data object and parses the experiment file if required
-    returns the column names in the experiment and the graph plugins
-    '''
+    """
+    Initialized the experiment data object and parses the experiment file if required.
+    Returns the column names in the experiment and the graph plugins.
+    """
     requested_path = request.get_json(force=True)
     app.logger.debug("Requested path: %s", requested_path)
 
@@ -119,6 +126,7 @@ def get_distinct_values():
 
 @app.route('/data/plot',methods=['POST'])
 def plot():
+    """ Plot a data file """
     request_data = request.get_json(force=True)
     data_file = request_data['data_file']
     graph_type = request_data['graph_type']
@@ -140,6 +148,7 @@ def plot():
 
 @app.route('/plugin/list',methods=['GET', 'POST'])
 def plugin_list():
+    """ Returns the plugin list (possibly reload them) """
     request_data = request.get_json(force=True)
     try:
         if str(request_data).lower() == "reload":
@@ -166,81 +175,58 @@ def plugin_parameters():
 
 @app.route('/preset/load',methods=['POST'])
 def load_preset():
-    '''
-    returns presets depending on the requested value:
-    empty - will return all presets in the database
-    data_file - will return presets that can apply to the selected experiment file
-    '''
-    res = {}
+    """
+    Returns presets that can be applied to a specific data file (if specified).
+    """
     data_file = request.get_json(force=True)
-    frame = internals.get_frames()
+    presets = internals.get_presets()
 
     if not data_file: # Empty message return all presets
-        for index, row in frame.iterrows():
-            res[row['name']] = json.loads(row['json'])
+        res = {p['name']: p['json'] for p in presets}
     else:
         data = DataSource(data_file, config['export_path'])
-        sieve = set(data.column_names)
-        for index, row in frame.iterrows():
-            i = 0
-            items = row['items'].split(',')
-            for item in items:
-                if item in sieve:
-                    i+=1
-                else:
-                    break
-            if i == len(items):
-                res[row['name']] = json.loads(row['json'])
+        data_columns = set(data.column_names)
+        res = {p['name']: p['json'] for p in presets if data_columns.issuperset(p['items'])}
     return Response(json.dumps(res), mimetype='application/json')
 
     
 @app.route('/preset/save',methods=['POST'])
 def save_preset():
-    '''
-    recieves a {'name':name, "preset": preset} dict
-    where name is an arbitrary name for the preset (will overwrite presets with he same name)
-    and preset is the the same as a graphplugin.getparameters
-    example:
-    {"name":"thing2","preset":{"Line":{"x_axis":"timestamp","y_axis":"performance","group_by":{"name":["vm-1","vm-2"]}}}}
-    '''
+    """ Save a preset by name """
     parameters = request.get_json(force=True)
     if type(parameters) != dict:
         raise Exception("Expecting a dict, got a "+type(parameters))
 
-    items = []
     name = parameters['name']
     preset = parameters['preset']
     graph_type = preset['graph_type']
     parameters = preset['parameters']
 
+    items = set()
     plugin_parameters = plugins.get_plugin_parameters(graph_type)
     for key, param in parameters.items():
         ditem = plugin_parameters[key]
-        if ditem['filterByValue']: #turns values back into column names (such as vm-1 => name)
-            items.append(param.keys()[0])
+        if ditem['filterByValue']: # Turns values back into column names (such as vm-1 => name)
+            items.add(param.keys()[0])
         elif type(param) == list:
             for sub_item in param:
-                items.append(sub_item)
+                items.add(sub_item)
         else:
-            items.append(param)
+            items.add(param)
 
-    internals.save_frame(name, preset, items)
+    internals.save_preset(name, preset, items)
 
     return Response(json.dumps(['Preset saved.']), mimetype='application/json')
 
 
 @app.route('/preset/delete',methods=['POST'])
 def delete_preset():
-    '''
-    takes a list of names and deletes the associated presets if any
-    example:
-    ["name1","name2"]
-    '''
+    """ Delete a preset(s) by name """
     presets = request.get_json(force=True)
     if type(presets) != list or len(presets) == 0:
         raise Exception("Expecting a non-empty list.")
 
-    internals.delete_frames(*presets)
+    internals.delete_presets(*presets)
 
     return Response(json.dumps(['Preset deleted.']), mimetype='application/json')
 
@@ -249,8 +235,4 @@ def delete_preset():
 # Main
 ################################################################
 if __name__ == '__main__':
-    try:
-        print "-I- starting server on port {}".format(app.config['port'])
-        app.run(app.config['hostname'], port = app.config['port'], threaded=True)
-    except KeyboardInterrupt:
-        exit(0)
+    app.run(app.config['hostname'], port=app.config['port'], threaded=True)

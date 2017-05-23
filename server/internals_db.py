@@ -2,7 +2,6 @@
 @editor: Liran Funaro <funaro@cs.technion.ac.il>
 @author: Alex Nulman <anulman@cs.haifa.ac.il>
 """
-
 import sqlite3
 import os
 from contextlib import closing
@@ -20,17 +19,25 @@ class InternalsDB:
     def __init__(self, db_path):
         self.db_path = db_path
 
-    def get_frames(self):
+    def get_presets(self):
         self.validate()
 
         with self.__db_connection__() as conn:
-            return pd.read_sql_query('select * from presets order by name', conn)
+            frame = pd.read_sql_query('select * from presets order by name', conn)
+            ret = []
+            for index, row in frame.iterrows():
+                ret.append({
+                    'name': row['name'],
+                    'json': json.loads(row['json']),
+                    'items': set(json.loads(row['items'])),
+                })
+            return ret
 
-    def save_frame(self, name, preset, items):
+    def save_preset(self, name, preset, items):
         frame = pd.DataFrame([{
             'name': name,
             'json': json.dumps(preset),
-            'items': ','.join(items),
+            'items': json.dumps(list((items))),
         }])
 
         self.validate()
@@ -40,7 +47,7 @@ class InternalsDB:
             conn.commit()
             frame.to_sql('presets', conn, index=False, if_exists='append')
 
-    def delete_frames(self, *names):
+    def delete_presets(self, *names):
         self.validate()
 
         with self.__db_connection__() as conn:
