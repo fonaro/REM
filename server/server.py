@@ -24,7 +24,7 @@ from plugin_manager import PluginManager
 
 app = Flask(__name__)
 plugins = PluginManager(config["plugins_path"])
-internals = internals_db.InternalsDB(config["internals_db"])
+internals = internals_db.InternalsDB(config["internals_db_path"])
 
 app.config.from_object(__name__)
 app.config.update(config) # apply config file settings
@@ -106,7 +106,7 @@ def get_columns():
     requested_path = request.get_json(force=True)
     app.logger.debug("Requested path: %s", requested_path)
 
-    data = DataSource(requested_path, config['export_path'])
+    data = DataSource(requested_path, config['export_folder'])
 
     res = data.column_names
     return Response(json.dumps(res), mimetype='application/json')
@@ -119,7 +119,7 @@ def get_distinct_values():
     data_file = request_data['data_file']
     parameters = request_data['parameters']
 
-    data = DataSource(data_file, config['export_path'])
+    data = DataSource(data_file, config['export_folder'])
     ret = data.get_distinct_values(parameters)
     return Response(json.dumps(ret), mimetype='application/json')
 
@@ -132,7 +132,7 @@ def plot():
     graph_type = request_data['graph_type']
     parameters = request_data['parameters']
 
-    data = DataSource(data_file, config['export_path'])
+    data = DataSource(data_file, config['export_folder'])
     if not data.column_names:
         raise Exception("No data in file.")
 
@@ -184,7 +184,7 @@ def load_preset():
     if not data_file: # Empty message return all presets
         res = {p['name']: p['json'] for p in presets}
     else:
-        data = DataSource(data_file, config['export_path'])
+        data = DataSource(data_file, config['export_folder'])
         data_columns = set(data.column_names)
         res = {p['name']: p['json'] for p in presets if data_columns.issuperset(p['items'])}
     return Response(json.dumps(res), mimetype='application/json')
