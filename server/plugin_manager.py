@@ -7,11 +7,13 @@ import imp
 import sys
 import glob
 import types
+import logging
 
 class PluginManager:
     PLUGIN_PACKAGE = "rem_plugins"
 
     def __init__(self, plugins_path="plugins"):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.__plugins_path = plugins_path
         self.__plugins_search_term = os.path.join(self.__plugins_path, "*.py")
 
@@ -63,14 +65,16 @@ class PluginManager:
         try:
             module_name = self.__plugin_module_name(name)
             m = imp.load_source(module_name, file_path)
+            if(hasattr(m, "ignore_plugin")):
+                return
             desc = m.description()
             params = m.parameters()
             self.__plugins_map[desc] = name
             self.__plugins_parameters[desc] = params
         except Exception as e:
-            print "[ERROR] Can't load plugin", name, ":", e # Should log
+            self.logger.error("Can't load plugin %s : %s", name, e)
         else:
-            print "[SUCCESS] Plugin", name, "loaded" # Should log
+            self.logger.info("Plugin %s loaded", name)
 
 # Unit test
 if __name__ == "__main__":
