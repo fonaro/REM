@@ -34,7 +34,7 @@ def image_path():
     return "img/pluginImg/Boxplot.png"
 
 
-def plot(filename, sqlpath, x_axis, y_axis, group_by):
+def plot(data, x_axis, y_axis, group_by):
     cats = list("abcdef")
     yy = np.random.randn(2000)
     g = np.random.choice(cats, 2000)

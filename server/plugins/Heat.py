@@ -36,7 +36,7 @@ def image_path():
     return "img/pluginImg/Heat.png"
 
 
-def plot(filename, sqlpath, x_axis, y_axis, group_by):
+def plot(data, x_axis, y_axis, group_by):
     data['Year'] = data['Year'].astype(str)
     unempl = pd.melt(data, var_name='Month', value_name='Unemployment', id_vars=['Year'])
     fig = charts.HeatMap(unempl, x='Year', y='Month', values='Unemployment', stat=None, sort_dim={'x': False}, sizing_mode='stretch_both')

@@ -66,7 +66,6 @@ function generateModelParameters(data_file, model, cols, parameters) {
                 }
             });
         }
-
     });
 }
 

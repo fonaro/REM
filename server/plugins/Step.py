@@ -34,7 +34,7 @@ def parameters():
 def image_path():
     return "img/pluginImg/Step.png"
 
-def plot(data, sqlpath, x_axis, y_axis, group_by):
+def plot(data, x_axis, y_axis, group_by):
     group_by, values = group_by
     if type(values) != list:
         values = [values]
