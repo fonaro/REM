@@ -23,6 +23,7 @@ config = dict(
     port = 5000,
     debug = True,
     hostname = '0.0.0.0',
-    #the SECRET_KEY is required, without it you cant have sessions.
-    SECRET_KEY = 'this is my secret key, there are many like it, but this one is mine'
+
+    # The SECRET_KEY is required, without it you can't have sessions.
+    SECRET_KEY = '1869abdf7a054d02b35bbbcf9d8b99d0fd74f42c41666d15',
     )
