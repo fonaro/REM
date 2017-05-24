@@ -14,11 +14,9 @@ $(document).ready(function () {
 
         // Fixes explorer height to fill whole screen
         maxHeight('#file-explorer');
-        maxHeight('#row');
         $(window).resize(function() {
             maxHeight('#file-explorer');
-            maxHeight('#row');
-        })
+        });
 
         $("#explorer-wrapper").resizable({
             handles: 'n,w,s,e',
@@ -40,10 +38,10 @@ $(document).ready(function () {
 
         // Toggles file explorer button
         $("#toggle-explorer").click(function () {
-            $("#explorer-wrapper").toggle("slide");
+            $("#explorer-wrapper").slideToggle(0);
             $("#toggle-explorer i").toggleClass("glyphicon-arrow-left glyphicon-arrow-right");
             $("#right-panel").toggleClass("col-md-9 col-md-12");
-            $(window).trigger('resize');
+            window.dispatchEvent(new Event('resize'));
         });
 
         // After everything is done, query the directory
@@ -122,8 +120,19 @@ function initTreeView() {
 }
 
 
+function getElementsHeight(elements) {
+    var elementsHeight = 0;
+    $("#top-part,#location-part,#notification").add(elements).outerHeight(function(i, h){
+        elementsHeight += h;
+    });
+    return elementsHeight;
+}
+
+
 // Fixes the height of elements in the middle view
-function maxHeight(div) {
-    var remaining_height = $(window).height() - $("#top-part").height() - $("#notification").height();
+function maxHeight(div, limiting_elements, padding) {
+    var remaining_height = $(window).height() - getElementsHeight(limiting_elements);
+    if(padding)
+        remaining_height -= padding;
     $(div).height(remaining_height);
 }

@@ -6,6 +6,7 @@
 // On document ready
 $(document).ready(function () {
     try {
+        $('#loader').hide();
         resetNotifications();
     } catch (e) {
         updateError(e.message);
@@ -17,15 +18,19 @@ $(document).ready(function () {
 // Hides loaders and error messages
 function resetNotifications() {
     $("#err-block").hide();
-    $('#loader').hide();
+    $("#right-panel").LoadingOverlay("hide");
+//    $('#loader').hide();
     $('#save-as-wrapper').hide();
     $('#server-success').hide();
+    $('#tab-content').show();
 }
 
 // Update loading message
 function updateLoading(message) {
     resetNotifications();
-    $('#loader').show();
+//    $('#loader').show();
+    $("#right-panel").LoadingOverlay("show", {color: "rgba(255,255,255,0.9)"});
+    $('#tab-content').hide();
     updateNotification(message);
 }
 
@@ -43,6 +48,7 @@ function updateNotification(message) {
 
 // Display error message
 function updateError(message, traceback) {
+    resetNotifications();
     console.log(message);
     $('#err-msg').html(message);
 
@@ -61,13 +67,13 @@ function updateError(message, traceback) {
         });
     }
 
-    $('#loader').hide();
     $("#err-block").show();
 }
 
 // Display success message
 // Disappears after 5 sec
 function updateSuccess(message) {
+    resetNotifications();
     console.log(message);
     $('#server-success').html(message);
     $('#server-success').show();

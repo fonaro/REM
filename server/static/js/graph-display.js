@@ -6,7 +6,11 @@
 // On document ready
 $(document).ready(function () {
     try {
-        fixGraphDisplayHeight();
+        // Fixes explorer height to fill whole screen
+        maxHeight('#graph-display', "#tab-select", 20);
+        $(window).resize(function() {
+            maxHeight('#graph-display', "#tab-select", 20);
+        });
     } catch (e) {
         updateError(e.message);
     }

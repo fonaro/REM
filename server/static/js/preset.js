@@ -15,6 +15,7 @@ $(document).ready(function () {
         // Listener to preset select button
         $('#select-preset').click(handleSelectPreset);
         $('#preset-list').dblclick(handleSelectPreset);
+        $('#preset-list').click(handleShowPreset);
 
         // Save dialog functions
         $('#save-preset').click(function () {
@@ -44,6 +45,8 @@ $(document).ready(function () {
         });
 
         $('#reload-preset').click(state.updatePresets);
+        
+        $('.nav-pills a[href="#preset-selection"]').tab('show');
     } catch (e) {
         updateError(e.message);
     }
@@ -65,10 +68,7 @@ function savePreset(name, parameters) {
 
 // Return the selected preset name
 function selectedPresetName() {
-    var selectedPreset = $('#preset-list').val();
-    var reg = /^(.*)\:\s{6}/g;
-    var result = reg.exec(selectedPreset);
-    return result[1];
+    return $('#preset-list').val();
 }
 
 
@@ -78,14 +78,44 @@ function handleSelectPreset() {
     state.selectPreset(presetName);
 }
 
+
+function handleShowPreset() {
+    var presetName = selectedPresetName();
+    var info = state.getPresetInfo(presetName);
+    var info = JSON.stringify(state.getPresetInfo(presetName), undefined, 4);
+    $("#preset-info").html(syntaxHighlight(info)).show();
+}
+
 // Update the preset list view
 function updatePresetList(presets) {
     var result = [];
 
     // Will display the name, followed by spaces, and the preset values
     for (var key in presets) {
-        result.push(key + ":\xa0\xa0\xa0\xa0\xa0\xa0\xa0" + JSON.stringify(presets[key]) + "'");
+        result.push(key);
     }
 
     fillListParameters($('#preset-list'), result);
+    $("#preset-info").empty();//.hide();
+}
+
+// Syntac highligting for json
+// https://stackoverflow.com/a/7220510/2570677
+function syntaxHighlight(json) {
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        var cls = 'number';
+        if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+                cls = 'key';
+            } else {
+                cls = 'string';
+            }
+        } else if (/true|false/.test(match)) {
+            cls = 'boolean';
+        } else if (/null/.test(match)) {
+            cls = 'null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+    });
 }

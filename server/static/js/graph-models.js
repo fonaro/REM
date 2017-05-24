@@ -12,6 +12,11 @@ $(document).ready(function () {
             $("#err-msg").hide();
             state.updateListPlugin(true);
         });
+        
+        maxHeight('#right-panel');
+        $(window).resize(function() {
+            maxHeight('#right-panel');
+        });
     } catch (e) {
         updateError(e.message);
     }
@@ -50,7 +55,5 @@ function createModulesListView(modelsData) {
         state.selectGraphModel(this.textContent);
     });
 
-    $('.nav-pills a[href="#graph-selection"]').tab('show');
-    $('.nav-pills a[href="#create-new"]').tab('show');
-    $('#model-select').removeClass('disabled');
+    $('#model-selection').removeClass('disabled');
 }

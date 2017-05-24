@@ -106,6 +106,11 @@ var state = new function () {
                 self.selectedModelParameters);
         }, serverErrorHandler);
     };
+    
+    
+    this.getPresetInfo = function (presetName) {
+        return self.presets[presetName];
+    };
 
     // Select a preset
     this.selectPreset = function (presetName) {

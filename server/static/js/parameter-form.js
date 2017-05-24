@@ -41,8 +41,8 @@ function sendPlotRequestFromUserInput() {
 // Creates the required input fields based on the selected model
 function generateModelParameters(data_file, model, cols, parameters) {
     $('#parameter-selection').empty();
-    var newP = generateParagraph("Select parameters:");
-    $('#parameter-selection').append(newP);
+//    var newP = generateParagraph("Select parameters:");
+//    $('#parameter-selection').append(newP);
 
     //go over all the model parameters, generate an input field and fill in the input parameters
     $.each(parameters, function (key, parameter_data) {
