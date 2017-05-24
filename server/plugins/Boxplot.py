@@ -10,15 +10,23 @@ from bokeh.io import save
 from os.path import join as join_path
 from collections import OrderedDict
 
+ignore_plugin = True
+
 def description():
     return "Box Plot"
 
 
 def parameters():
     params = OrderedDict()
-    params['x_axis'] = {'type': 'single', 'filterByValue': False}
-    params['y_axis'] = {'type': 'single', 'filterByValue': False}
-    params['group_by'] = {'type': 'multiple', 'filterByValue': True}
+    params['x_axis'] = {'label': 'X axis', 'type': 'single',
+                        'default': 'timestamp', 'required': True}
+    params['y_axis'] = {'label': 'Y axis', 'type': 'single',
+                        'required': True}
+    params['group_by'] = {'label': "Group By", 'type': 'single',
+                          'required': True, 'filterByValue': {
+        'type': 'multiple',
+        'required': False
+    }}
     return params
 
 

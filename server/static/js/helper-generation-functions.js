@@ -3,6 +3,13 @@
 // Generation helper functions
 "use strict";
 
+// We use that to avoid giving IDs to the inputs
+// so the browser won't suggest irreverent keys.
+var globalInputFieldContainer = {};
+function getInputField(id) {
+    return $(globalInputFieldContainer[id]);
+}
+
 // Generates an input
 function generateInput(inputType) {
     var newInput = document.createElement('input');
@@ -20,7 +27,7 @@ function generateLabel(forName, className, value) {
 }
 
 // Generates the required input element (datalist,select,radio button,checkbox or range)
-function generateInputField(id, type, parameters, wrap) {
+function generateInputField(id, type, parameters, wrap, default_value) {
     if (wrap === undefined) {
         wrap = true;
     }
@@ -46,6 +53,16 @@ function generateInputField(id, type, parameters, wrap) {
             //add handling
             break;
     }
+
+    if(default_value)
+        newInput[0].value = default_value;
+
+    globalInputFieldContainer[id] = newInput[0];
+
+    getInputField(id).on('input', function() {
+        getInputField(id).removeClass("error");
+    })
+
     //if wrap is true- wrap the input in a div (looks more unified)
     if (wrap) {
         newInput = wrapInDiv(newInput, 'col-xs-10');
@@ -65,7 +82,6 @@ function generateDatalist(id) {
     var newInput = document.createElement('input');
     newInput.setAttribute('class', 'form-control');
     newInput.setAttribute('list', id);
-    newInput.setAttribute('id', 'input-' + id);
 
     var newDatalist = document.createElement('datalist');
     newDatalist.setAttribute('id', id);
@@ -76,9 +92,7 @@ function generateDatalist(id) {
 
 // Generates an array with a select element in it
 function generateSelect(id, isMultiple) {
-
     var newSelect = document.createElement('select');
-    newSelect.setAttribute('id', 'input-' + id);
     newSelect.setAttribute('class', 'form-control');
     newSelect.multiple = isMultiple;
 

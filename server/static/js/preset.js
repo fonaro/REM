@@ -68,7 +68,6 @@ function selectedPresetName() {
     var selectedPreset = $('#preset-list').val();
     var reg = /^(.*)\:\s{6}/g;
     var result = reg.exec(selectedPreset);
-    console.log(result)
     return result[1];
 }
 

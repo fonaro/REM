@@ -10,7 +10,7 @@ $(document).ready(function () {
         // Reload the plugins and refresh the model list
         $('#reload-plugins').click(function () {
             $("#err-msg").hide();
-            updateListPlugin(true);
+            state.updateListPlugin(true);
         });
     } catch (e) {
         updateError(e.message);
@@ -18,22 +18,10 @@ $(document).ready(function () {
 });
 
 
-// Update the list plugin view (issue a server query)
-function updateListPlugin(do_reload) {
-    if (do_reload === undefined) {
-        do_reload = false;
-    }
-
-    $('model-list').empty();
-    $('#parameter-selection').empty();
-    asyncListPlugin(do_reload, handleModulesList);
-}
-
 // Fills the model list with available models and images
-function handleModulesList(modelsData) {
-    updateNotification("Received models response from the server.");
-
+function createModulesListView(modelsData) {
     $('#model-list').empty();
+    $('#parameter-selection').empty();
 
     $.each(modelsData, function (modelName, modelImage) {
         //generate li element with image and model name
@@ -65,6 +53,4 @@ function handleModulesList(modelsData) {
     $('.nav-pills a[href="#graph-selection"]').tab('show');
     $('.nav-pills a[href="#create-new"]').tab('show');
     $('#model-select').removeClass('disabled');
-
-    resetNotifications();
 }

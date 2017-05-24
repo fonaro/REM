@@ -24,7 +24,14 @@ function resetNotifications() {
 
 // Update loading message
 function updateLoading(message) {
+    resetNotifications();
     $('#loader').show();
+    updateNotification(message);
+}
+
+// update when loading is done
+function updateFinishLoading(message) {
+    resetNotifications();
     updateNotification(message);
 }
 

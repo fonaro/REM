@@ -12,16 +12,23 @@ from collections import OrderedDict
 #the following is for proof of concept
 from bokeh.sampledata.unemployment1948 import data
 
+ignore_plugin = True
+
 def description():
     return "Heat Map"
 
 
 def parameters():
-    # return {'Line': {'x-axis':'single', 'y-axis':'single', 'group-by':'multiple'}}
     params = OrderedDict()
-    params['x_axis'] = {'type': 'single', 'filterByValue': False}
-    params['y_axis'] = {'type': 'single', 'filterByValue': False}
-    params['group_by'] = {'type': 'multiple', 'filterByValue': True}
+    params['x_axis'] = {'label': 'X axis', 'type': 'single',
+                        'default': 'timestamp', 'required': True}
+    params['y_axis'] = {'label': 'Y axis', 'type': 'single',
+                        'required': True}
+    params['group_by'] = {'label': "Group By", 'type': 'single',
+                          'required': True, 'filterByValue': {
+        'type': 'multiple',
+        'required': False
+    }}
     return params
 
 

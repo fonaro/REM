@@ -10,7 +10,7 @@ $(document).ready(function () {
         $('#selected-exp').hide();
 
         // Draw the initial file explorer tree
-        initTree();
+        initTreeView();
 
         // Fixes explorer height to fill whole screen
         maxHeight('#file-explorer');
@@ -47,7 +47,8 @@ $(document).ready(function () {
         });
 
         // After everything is done, query the directory
-        state.changeDir([]);
+        state.updateDir();
+        state.updateDataFile();
     } catch (e) {
         updateError(e.message);
     }
@@ -68,14 +69,14 @@ function handleSelectTreeFile() {
 }
 
 // Update the selected file view
-function updateSelectedFile(data_file_path) {
+function updateSelectedFileView(data_file_path) {
     $('#selected-exp').html(data_file_path);
     $('#selected-exp').show();
 }
 
 
 // Update the directory in the view
-function updateDir(curDir, data_json) {
+function updateDirView(curDir, data_json) {
     $('#jstree').jstree(true).settings.core.data = data_json;
     $('#jstree').jstree(true).refresh();
     $('#curr-dir').html(curDir);
@@ -83,7 +84,7 @@ function updateDir(curDir, data_json) {
 
 
 // Initialize the Tree view
-function initTree() {
+function initTreeView() {
     $('#jstree').jstree({
         'core': {
             'data': [],
@@ -121,7 +122,7 @@ function initTree() {
 }
 
 
-// Fixes the height 
+// Fixes the height of elements in the middle view
 function maxHeight(div) {
     var remaining_height = $(window).height() - $("#top-part").height() - $("#notification").height();
     $(div).height(remaining_height);

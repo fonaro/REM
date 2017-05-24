@@ -15,9 +15,15 @@ def description():
 
 def parameters():
     params = OrderedDict()
-    params['x_axis'] = {'type': 'single', 'filterByValue': False}
-    params['y_axis'] = {'type': 'single', 'filterByValue': False}
-    params['group_by'] = {'type': 'multiple', 'filterByValue': True}
+    params['x_axis'] = {'label': 'X axis', 'type': 'single',
+                        'default': 'timestamp', 'required': True}
+    params['y_axis'] = {'label': 'Y axis', 'type': 'single',
+                        'required': True}
+    params['group_by'] = {'label': "Group By", 'type': 'single',
+                          'required': True, 'filterByValue': {
+        'type': 'multiple',
+        'required': False
+    }}
     return params
 
 
@@ -26,19 +32,22 @@ def image_path():
 
 
 def plot(data, x_axis, y_axis, group_by):
-    group_by, value = group_by.iteritems().next()
-    if type(value) != list:
-        value = [value]
+    group_by, values = group_by
+    if type(values) != list:
+        values = [values]
+    if not values:
+        # If no value is selected, use all.
+        values = data.get_distinct_values(group_by)
 
-    figure_name = 'line'
+    # figure_name = 'line'
     colors = list(Set1_9)
     parameters = []
-    for i, val in enumerate(value):
+    for i, val in enumerate(values):
         parameters.append({'col':group_by, 'value':val,
                            'x':x_axis, 'y':y_axis,
                            'color':colors[i%9]}) # , 'color':'red'
 
-    fig = plotting.figure(title=figure_name,sizing_mode='stretch_both',
+    fig = plotting.figure(sizing_mode='stretch_both', #title=figure_name,
                           x_axis_label=x_axis ,y_axis_label=y_axis ,
                           tools=['hover','crosshair','wheel_zoom','box_zoom','pan',
                                  'save','resize','reset'])
@@ -66,5 +75,3 @@ def plot(data, x_axis, y_axis, group_by):
     save(fig)
     js, div = components(fig, wrap_script=False, wrap_plot_info=True)
     return js, div
-
-        

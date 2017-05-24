@@ -23,8 +23,6 @@ import directory_listing
 from plugin_manager import PluginManager
 
 app = Flask(__name__)
-plugins = PluginManager(config["plugins_path"])
-internals = internals_db.InternalsDB(config["internals_db_path"])
 
 app.config.from_object(__name__)
 app.config.update(config) # apply config file settings
@@ -39,6 +37,9 @@ main_logger.addHandler(out_hdlr)
 main_logger.setLevel(logging.DEBUG if config.get('debug', False) else logging.WARNING)
 app.logger.handlers = []
 app.logger.propagate = True
+
+plugins = PluginManager(config["plugins_path"])
+internals = internals_db.InternalsDB(config["internals_db_path"])
 
 
 @app.errorhandler(Exception)
@@ -98,7 +99,7 @@ def list_dir():
 ########################################################################
 
 @app.route('/data/getcolumns',methods=['POST'])
-def get_columns():
+def data_get_columns():
     """
     Initialized the experiment data object and parses the experiment file if required.
     Returns the column names in the experiment and the graph plugins.
@@ -109,11 +110,14 @@ def get_columns():
     data = DataSource(requested_path, config['export_folder'])
 
     res = data.column_names
+    if not res:
+        raise Exception("No data in file.")
+
     return Response(json.dumps(res), mimetype='application/json')
 
 
 @app.route('/data/getvals',methods=['POST'])
-def get_distinct_values():
+def data_get_distinct_values():
     """ Returns all the distinct values of a data column """
     request_data = request.get_json(force=True)
     data_file = request_data['data_file']
@@ -125,7 +129,7 @@ def get_distinct_values():
 
 
 @app.route('/data/plot',methods=['POST'])
-def plot():
+def data_plot():
     """ Plot a data file """
     request_data = request.get_json(force=True)
     data_file = request_data['data_file']
@@ -174,7 +178,7 @@ def plugin_parameters():
 
 
 @app.route('/preset/load',methods=['POST'])
-def load_preset():
+def preset_load():
     """
     Returns presets that can be applied to a specific data file (if specified).
     """
@@ -191,7 +195,7 @@ def load_preset():
 
     
 @app.route('/preset/save',methods=['POST'])
-def save_preset():
+def preset_save():
     """ Save a preset by name """
     parameters = request.get_json(force=True)
     if type(parameters) != dict:
@@ -205,10 +209,12 @@ def save_preset():
     items = set()
     plugin_parameters = plugins.get_plugin_parameters(graph_type)
     for key, param in parameters.items():
-        ditem = plugin_parameters[key]
-        if ditem['filterByValue']: # Turns values back into column names (such as vm-1 => name)
-            items.add(param.keys()[0])
-        elif type(param) == list:
+        item_desc = plugin_parameters[key]
+        if item_desc.get('filterByValue', None):
+            # Get only the column(s) name (not the values)
+            param = param[0]
+
+        if type(param) == list:
             for sub_item in param:
                 items.add(sub_item)
         else:
@@ -220,7 +226,7 @@ def save_preset():
 
 
 @app.route('/preset/delete',methods=['POST'])
-def delete_preset():
+def preset_delete():
     """ Delete a preset(s) by name """
     presets = request.get_json(force=True)
     if type(presets) != list or len(presets) == 0:

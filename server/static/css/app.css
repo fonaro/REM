@@ -137,6 +137,11 @@ select,datalist{
     border-width: 1px;
 }
 
+select.error, textarea.error, input.error {
+    border: red;
+    border-style: solid;
+}
+
 .white, .white a {
   color: white;
 }
