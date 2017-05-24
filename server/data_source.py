@@ -26,8 +26,12 @@ class DataSource(object):
     valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
 
     def __init__(self, file_path, export_path="exports"):
+        if isinstance(file_path, str):
+            raise Exception("Wrong type to file path: %s" % file_path)
+        if not file_path:
+            raise Exception("No data file")
         if not os.path.isfile(file_path):
-            raise Exception("Data file %s not found" % file_path)
+            raise Exception("Data file '%s' not found" % file_path)
 
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -35,8 +39,6 @@ class DataSource(object):
 
         self.__dir_path, self.__file_name = os.path.split(file_path)
         self.__export_path = os.path.join(self.__dir_path, export_path)
-        if not os.path.isdir(self.__export_path):
-            os.makedirs(self.__export_path)
 
         self.__name, _ext = os.path.splitext(self.__file_name)
         self.__sql_file_path = os.path.join(self.__export_path, self.__name+'.db')
@@ -75,6 +77,9 @@ class DataSource(object):
         return os.path.join(self.__export_path, file_name)
 
     def db_connection(self):
+        if not os.path.isdir(self.__export_path):
+            os.makedirs(self.__export_path)
+
         return closing(sqlite3.connect(self.__sql_file_path))
 
     def is_db_exits(self):
@@ -88,14 +93,14 @@ class DataSource(object):
         if not self.is_db_exits():
             return 0
 
+        data_file_stats = os.stat(self.__data_file)
+        current_size = data_file_stats.st_size
+        current_timestamp = data_file_stats.st_mtime
+
         try:
             with self.db_connection() as conn:
                 archived_size = long(conn.execute('select size from attributes').fetchone()[0])
                 archived_timestamp = conn.execute('select timestamp from attributes').fetchone()[0]
-
-            data_file_stats = os.stat(self.__data_file)
-            current_size = data_file_stats.st_size
-            current_timestamp = data_file_stats.st_mtime
 
             if archived_size < current_size:  # experiment fle grew since last time we scanned it
                 return archived_size + 1
@@ -107,8 +112,21 @@ class DataSource(object):
                 return None
         except Exception as e:
             self.logger.exception("Failed to read existing data status: %s", e)
-            os.remove(self.__sql_file_path)
+            self.clear_db()
             return 0
+
+    def clear_db(self):
+        try:
+            if self.is_db_exits():
+                os.remove(self.__sql_file_path)
+        except Exception as e:
+            self.logger.exception("Could not clear DB: %s", e)
+
+        try:
+            os.rmdir(self.__export_path)
+        except Exception as e:
+            self.logger.exception("Could not clear export folder: %s", e)
+
                 
     def generate_cols(self):
         """ Generates the column names """
@@ -177,13 +195,13 @@ class DataSource(object):
                 res = self.analyze_line(line)
                 if res:
                     dictlist.append(res)
-        
-        # Turn data into a DataFrame and delete middle stage
+
+        # Turn data into a DataFrame
         frame = pd.DataFrame(dictlist)
         frame.sort_values('timestamp', inplace=True)
-        try:
-            data_file_stats = os.stat(self.__data_file)
+        data_file_stats = os.stat(self.__data_file)
 
+        try:
             with self.db_connection() as conn:
                 pd.DataFrame(frame.columns).to_sql('columns',conn,if_exists='replace',index= False)
                 frame.to_sql('data', conn, if_exists='append', index= False)
@@ -192,4 +210,5 @@ class DataSource(object):
                     [{'size': data_file_stats.st_size, 'timestamp': data_file_stats.st_mtime}])
                 attribute_data.to_sql('attributes', conn, if_exists='replace', index=False)
         except Exception as e:
-            self.logger.exception("Failed to read existing data: %s", e)
+            self.logger.exception("Failed to write data to DB: %s", e)
+            self.clear_db()
