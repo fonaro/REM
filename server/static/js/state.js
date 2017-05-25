@@ -114,10 +114,13 @@ var state = new function () {
 
     // Select a preset
     this.selectPreset = function (presetName) {
-        if (presetName != null && presetName != undefined) {
+        if (presetName == null && presetName == undefined) {
+            return;
+        }
+        if (self.presets[presetName] != undefined) {
             return self.sendPlotRequest(self.presets[presetName]);
         } else {
-            updateError("Couldn't read preset name out of selected preset");
+            updateError("No such preset " + presetName);
         }
     };
 

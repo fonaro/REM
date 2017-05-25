@@ -23,14 +23,34 @@ function writeStorage(key, value) {
 // ##########################################################
 // # Hashdata handling
 // ##########################################################
-var MAX_COOKIE_CACHE = 128;
+var HASH_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+var MAX_COOKIE_CACHE = 1024;
+var HASH_LENGTH = setCollisionProbability(1E-40);
+
+
+// Based on the approximation: P(collision) = (k^2)/(2N)
+// k = MAX_COOKIE_CACHE
+// N = len(HASH_CHARS)^HASH_LENGTH
+// http://preshing.com/20110504/hash-collision-probabilities/
+function calcCollisionProbability() {
+    var k = MAX_COOKIE_CACHE;
+    var N = Math.pow(HASH_CHARS.length, HASH_LENGTH);
+    return (k*k)/(2*N);
+}
+
+// Calculate the reverse: N = (k^2)/(2*P(collision))
+function setCollisionProbability(probability) {
+    var k = MAX_COOKIE_CACHE;
+    var N = (k*k)/(2*probability);
+    HASH_LENGTH = Math.ceil(Math.log(N) / Math.log(HASH_CHARS.length));
+    return HASH_LENGTH;
+}
 
 // Taken from: https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
 function makeHashID() {
     var text = "";
-    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for (var i = 0; i < 128; i++)
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    for (var i = 0; i < HASH_LENGTH; i++)
+        text += HASH_CHARS.charAt(Math.floor(Math.random() * HASH_CHARS.length));
     return text;
 }
 
@@ -60,7 +80,7 @@ function setHashCookie(key, value) {
     var id = getHashID();
     var hashData = data[id] || {};
 
-    if (hashData[key] != value) {
+    if (JSON.stringify(hashData[key]) != JSON.stringify(value)) {
         id = resetHashID();
         hashData = $.extend(true, {}, hashData);
         hashData[key] = value;
