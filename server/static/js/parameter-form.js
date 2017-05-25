@@ -11,7 +11,11 @@ $(document).ready(function () {
         $('#parameters-form').change(function () {
             if (isParametersFormValid()) {
                 $('#param-select').removeClass('disabled');
-                $('#save-preset').removeClass('disabled');
+                if($("#new-preset-name").val().length < 4) {
+                    $('#save-preset').addClass('disabled');
+                } else {
+                    $('#save-preset').removeClass('disabled');
+                }
             } else {
                 $('#param-select').addClass('disabled');
                 $('#save-preset').addClass('disabled');

@@ -40,13 +40,12 @@ html,body{
 }
 
 .btn{
-	background-color: black;
+	/*background-color: black;*/
 	color: white;
 	margin: 5px;
 }
 
 .btn:hover{
-	background-color: #3db1c8;
 	color: white;
 }
 
@@ -89,12 +88,7 @@ h1{
 
 /*file explorer definitions*/
 #file-explorer{
-	border-right: 1px solid lightgray;
-	overflow-x: auto;
-}
-
-#up-dir{
-	float: left;
+	overflow-y: auto;
 }
 
 #proj-select{
@@ -105,6 +99,7 @@ h1{
 	padding-left: 0;
     padding-right: 0;
     margin-right: 0;
+    border-right: 1px solid lightgray;
 }
 
 #curr-dir{
@@ -222,7 +217,7 @@ hr{
 	float:left;
 	margin: 0;
     border-radius: 0;
-    background: grey;
+    /*background: grey;*/
 }
 
 /*

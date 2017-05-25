@@ -76,21 +76,16 @@ def static_file(path):
 @app.route('/listdir',methods=['POST'])
 def list_dir():
     """ Generates subtrees for the file browser """
-    requested_path_list = request.get_json(force=True)
-    app.logger.debug("Requested path list: %s", requested_path_list)
+    requested_path = request.get_json(force=True)
+    app.logger.debug("Requested path list: %s", requested_path)
 
-    if requested_path_list:
-        requested_path = os.path.join(*requested_path_list)
-    else:
+    if not requested_path:
         requested_path = data_root_dir
-
-    app.logger.debug("Requested path: %s", requested_path)
 
     res = directory_listing.get_subtree(requested_path)
     return Response(json.dumps({
         'json': list(res),
         'url': requested_path,
-        'url_list': os.path.split(requested_path)
     }), mimetype='application/json')
 
 

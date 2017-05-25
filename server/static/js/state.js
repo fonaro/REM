@@ -8,8 +8,7 @@ var state = new function () {
 // ##########################################################################
     
     // Current directory
-    this.curDir = ""; // URL
-    this.curDirList = getHashCookie("curDirList", []); // List
+    this.curDir = getHashCookie("curDir", ""); // Directory URL
 
     // Selected file
     this.selectedDataFile = getHashCookie("selectedDataFile", undefined); // The selected data file URL
@@ -30,12 +29,11 @@ var state = new function () {
 // ##########################################################################
 
     // Updates the tree with new data
-    this.changeDir = function (path_list) {
-        return asyncListDir(path_list, function (data) {
-            self.curDirList = data.url_list;
+    this.changeDir = function (path) {
+        return asyncListDir(path, function (data) {
             self.curDir = data.url;
             
-            setHashCookie("curDirList", self.curDirList);
+            setHashCookie("curDir", self.curDir);
 
             updateDirView(self.curDir, data.json);
         }, serverErrorHandler);
@@ -43,13 +41,7 @@ var state = new function () {
     
     // Updates the tree with the current directory
     this.updateDir = function (update_cookie) {
-        return self.changeDir(self.curDirList);
-    };
-
-    // Go to an upper directory
-    this.upDir = function () {
-        var up_dir_list = self.curDirList.slice(0, -1);
-        return self.changeDir(up_dir_list);
+        return self.changeDir(self.curDir);
     };
 
     // Select a data file path

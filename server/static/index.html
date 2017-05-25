@@ -47,8 +47,8 @@
 </div>
 <div id="location-part" class="header-location">
     <!-- toggle button for file explorer -->
-    <button id="toggle-explorer" class="btn">
-        <i class="glyphicon glyphicon-arrow-left white"></i>
+    <button id="toggle-explorer" class="btn btn-info">
+        <i class="glyphicon glyphicon-list white"></i>
     </button>
     <!-- display the current directory -->
     <p id='curr-dir'></p>
@@ -60,15 +60,23 @@
     <div class="row">
         <!-- file explorer -->
         <div id="explorer-wrapper" class="col-md-3">
-            <div id="file-explorer">
+            <ul id="explorer-control" class="nav nav-pills nav-justified">
+                <li><a data-toggle="pill" href="#file-explorer" class="active">Browse</a></li>
+                <li><a data-toggle="pill" href="#preset-explorer">Preset</a></li>
 
-                <!-- up directory button -->
-                <button id="up-dir" class='btn'>
-                    <i class="glyphicon glyphicon-arrow-up white"></i>
-                </button>
-                <!-- ok button (select project) -->
-                <button id="proj-select" class="btn">OK</button>
-                <div id="jstree"></div>
+                <!--&lt;!&ndash; ok button (select project) &ndash;&gt;-->
+                <!--<li>-->
+                    <!--<button id="proj-select" class="btn">OK</button>-->
+                <!--</li>-->
+            </ul>
+            <!-- tab contents -->
+            <div class="tab-content">
+                <div id="file-explorer" class="tab-pane active">
+                    <div id="file-jstree"></div>
+                </div>
+                <div id="preset-explorer" class="tab-pane fade">
+                    <div id="preset-jstree"></div>
+                </div>
             </div>
         </div>
 
@@ -96,46 +104,35 @@
                 <div id="parameter-selection-view" class="tab-pane fade">
                     <form action="" id='models-form'>
                         <div id="model-selection">
-                            <button id='reload-plugins' class='btn' title="reload plugin list">
+                            <button id='reload-plugins' class='btn btn-danger' title="reload plugin list">
                                 <i class="glyphicon glyphicon-refresh white"></i>
                             </button>
-                            Select graph model:
+                            <button class='btn btn-success disabled' id='param-select'>Plot</button>
+                            <button id='save-preset' class='btn btn-primary disabled'>Save</button>
+                            <div class="form-group row">
+                                <label for="new-preset-name" class="col-xs-2">Preset name</label>
+                                <input id="new-preset-name" class="col-xs-8" placeholder="E.g.- 'my preset'"/>
+                            </div>
+                            <hr>
                             <!-- model selection -->
                             <ul id='model-list'></ul>
                         </div>
                     </form>
                     <hr>
                     <form action="" id='parameters-form'>
-                        <button class='btn disabled' id='param-select'>Plot</button>
-                        <button class='btn disabled' id='save-preset'>Save</button>
+
                         <div id="parameter-selection">
                         </div>
                     </form>
                 </div>
 
-                <!-- hidden div - save preset popup -->
-                <div id='save-as-wrapper'>
-                    <div id="save-as-background">
-                    </div>
-                    <form id="save-as-preset-form">
-                        <p>Enter preset name:</p>
-                        <br/>
-                        <input type="text" id="preset-name" placeholder="E.g.- 'my preset'"/><br/>
-                        <br/>
-                        <button class='btn' id='save-as-ok'>Save</button>
-                        <button class='btn' id='save-as-cancel'>Cancel</button>
-                        <br/>
-                    </form>
-                </div>
-                <!-- end of save preset popup -->
-
                 <!-- inner tab - load an existing preset -->
                 <div id='preset-selection' class="tab-pane fade">
-                    <button id='reload-preset' class='btn' title="reload preset list">
+                    <button id='reload-preset' class='btn btn-danger' title="reload preset list">
                         <i class="glyphicon glyphicon-refresh white"></i>
                     </button>
-                    <button class='btn disabled' id='select-preset'>Load</button>
-                    <button class='btn disabled' id='delete-preset'>Delete</button>
+                    <button class='btn btn-success disabled' id='select-preset'>Load</button>
+                    <button class='btn btn-warning disabled' id='delete-preset'>Delete</button>
 
                     <form action="" id='saved-presets'>
                         <div id="saved-preset-selection">

@@ -25,23 +25,26 @@ def filter_files(files):
 def get_subtree(path):
     """ Generates file/folder subtrees for the file walker """
     _, dirs, files = next(os.walk(path))
+    yield {
+        'text': "..",
+        'children': False,
+        'id': os.path.split(path)[0],
+        'type': 'a-up-dir',
+    }
 
     for d in filter_folders(dirs):
         yield {'text': d,
                'children': True if os.listdir(os.path.join(path, d)) else False,
                'id': os.path.join(path, d),
-               'icon': 'glyphicon glyphicon-folder-open',
-               'type': 'default',
-               'state': {'opened': False},
+               'type': 'b-folder',
                }
 
     for f in filter_files(files):
         yield {
             'text': f,
             'children': False,
-            'icon': 'glyphicon glyphicon-file',
             'id': os.path.join(path, f),
-            'type': 'file',
+            'type': 'c-file',
         }
 
 if __name__ == '__main__':            

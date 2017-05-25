@@ -10,12 +10,12 @@ $(document).ready(function () {
         $('#selected-exp').hide();
 
         // Draw the initial file explorer tree
-        initTreeView();
+        initFileTreeView();
 
         // Fixes explorer height to fill whole screen
-        maxHeight('#file-explorer');
+        maxHeight('#file-explorer', "#explorer-control");
         $(window).resize(function() {
-            maxHeight('#file-explorer');
+            maxHeight('#file-explorer', "#explorer-control");
         });
 
         $("#explorer-wrapper").resizable({
@@ -29,17 +29,15 @@ $(document).ready(function () {
             location.reload();
         });
 
-        // File explorer double-click event
-        $('#jstree').bind("dblclick.jstree", handleSelectTreeFile);
-        // 'OK' button
-        $('#proj-select').on('click', handleSelectTreeFile);
-        // 'UP directory' button
-        $('#up-dir').on('click', state.upDir);
+        // File explorer click event
+        $('#file-jstree').bind("click.jstree", handleSelectTreeFile);
+//        // 'OK' button
+//        $('#proj-select').on('click', handleSelectTreeFile);
 
         // Toggles file explorer button
         $("#toggle-explorer").click(function () {
             $("#explorer-wrapper").slideToggle(0);
-            $("#toggle-explorer i").toggleClass("glyphicon-arrow-left glyphicon-arrow-right");
+            $("#toggle-explorer").toggleClass("btn-info btn-basic");
             $("#right-panel").toggleClass("col-md-9 col-md-12");
             window.dispatchEvent(new Event('resize'));
         });
@@ -55,12 +53,13 @@ $(document).ready(function () {
 
 // Find the selected file and update it
 function handleSelectTreeFile() {
-    var node = $('#jstree').jstree('get_selected', true)[0];
+    var node = $('#file-jstree').jstree('get_selected', true)[0];
     switch (node.type) {
-        case 'default':
-            state.changeDir([node.id]);
+        case 'a-up-dir':
+        case 'b-folder':
+            state.changeDir(node.id);
             break;
-        case 'file':
+        case 'c-file':
             state.selectDataFile(node.id);
             break;
     }
@@ -75,15 +74,15 @@ function updateSelectedFileView(data_file_path) {
 
 // Update the directory in the view
 function updateDirView(curDir, data_json) {
-    $('#jstree').jstree(true).settings.core.data = data_json;
-    $('#jstree').jstree(true).refresh();
+    $('#file-jstree').jstree(true).settings.core.data = data_json;
+    $('#file-jstree').jstree(true).refresh();
     $('#curr-dir').html(curDir);
 }
 
 
 // Initialize the Tree view
-function initTreeView() {
-    $('#jstree').jstree({
+function initFileTreeView() {
+    $('#file-jstree').jstree({
         'core': {
             'data': [],
             'themes': {
@@ -102,12 +101,18 @@ function initTreeView() {
                 (this.get_type(a) >= this.get_type(b) ? 1 : -1);
         },
         'types': {
-            'default': {
-                'icon': 'glyphicon glyphicon-folder'
+            'a-up-dir': {
+                icon: 'glyphicon glyphicon-chevron-left',
+                state: {'opened': false},
             },
-            'file': {
-                'valid_children': [],
-                'icon': 'glyphicon glyphicon-file'
+            'b-folder': {
+                icon: 'glyphicon glyphicon-folder-open',
+                state: {'opened': false}
+            },
+            'c-file': {
+                valid_children: [],
+                icon: 'glyphicon glyphicon-file',
+                state: {'opened': false},
             }
         },
         'unique': {
