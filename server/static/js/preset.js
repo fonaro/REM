@@ -19,8 +19,25 @@ $(document).ready(function () {
         $('#preset-jstree').bind("hover_node.jstree", function(e, data) {
             var presetName = data.node.id;
             var info = state.getPresetInfo(presetName);
+            if(info === undefined) {
+                return;
+            }
+            
             var info = JSON.stringify(state.getPresetInfo(presetName), undefined, 4);
-            $("#preset-info").html(syntaxHighlight(info)).show();
+            $("#preset-info").html(syntaxHighlight(info));
+
+            var item_offset = $("a:contains('" + presetName + "')").offset();
+            $("#preset-info").css({
+                left: $(this).offset().left + $(this).width(),
+                top: item_offset.top,
+                position: 'fixed'
+            });
+
+            $("#preset-info").show();
+        });
+        
+        $('#preset-jstree').bind("dehover_node.jstree", function(e, data) {
+            $("#preset-info").hide();
         });
         
         // Listener to preset select button
