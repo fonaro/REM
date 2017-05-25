@@ -65,13 +65,13 @@
         <!-- file explorer -->
         <div id="explorer-wrapper" class="col-md-3">
             <ul id="explorer-control" class="nav nav-pills nav-justified">
-                <li><a data-toggle="pill" href="#file-explorer" class="active">Browse</a></li>
+                <li class="active"><a data-toggle="pill" href="#file-explorer">Browse</a></li>
                 <li><a data-toggle="pill" href="#preset-explorer">Preset</a></li>
-
-                <!--&lt;!&ndash; ok button (select project) &ndash;&gt;-->
-                <!--<li>-->
-                    <!--<button id="proj-select" class="btn">OK</button>-->
-                <!--</li>-->
+                <li>
+                    <button id='reload-preset' class='btn btn-danger disabled' title="Reload preset list">
+                        <i class="glyphicon glyphicon-refresh white"></i>
+                    </button>
+                </li>
             </ul>
             <!-- tab contents -->
             <div class="tab-content">
@@ -84,13 +84,11 @@
             </div>
         </div>
 
-
         <!-- right panel -->
         <div id="right-panel" class="right-panel col-md-9">
             <!-- tab header -->
             <ul id="tab-select" class="nav nav-pills nav-justified">
-                <li><a data-toggle="pill" href="#preset-selection">Preset Selection</a></li>
-                <li><a data-toggle="pill" href="#parameter-selection-view">Parameter Selection</a></li>
+                <li class="active"><a data-toggle="pill" href="#parameter-selection-view">Create/Edit Preset</a></li>
                 <li><a data-toggle="pill" href="#graph-display">Graph Display</a></li>
             </ul>
 
@@ -105,7 +103,7 @@
             <!-- tab contents -->
             <div class="tab-content">
                 <!-- inner tab - create a new model -->
-                <div id="parameter-selection-view" class="tab-pane fade">
+                <div id="parameter-selection-view" class="tab-pane active">
                     <form action="" id='models-form'>
                         <div id="model-selection">
                             <button id='reload-plugins' class='btn btn-danger' title="reload plugin list">
@@ -113,6 +111,7 @@
                             </button>
                             <button class='btn btn-success disabled' id='param-select'>Plot</button>
                             <button id='save-preset' class='btn btn-primary disabled'>Save</button>
+                            <button id='delete-preset' class='btn btn-warning'>Delete</button>
                             <div class="form-group row">
                                 <label for="new-preset-name" class="col-xs-2">Preset name</label>
                                 <input id="new-preset-name" class="col-xs-8" placeholder="E.g.- 'my preset'"/>
@@ -126,21 +125,6 @@
                     <form action="" id='parameters-form'>
 
                         <div id="parameter-selection">
-                        </div>
-                    </form>
-                </div>
-
-                <!-- inner tab - load an existing preset -->
-                <div id='preset-selection' class="tab-pane fade">
-                    <button id='reload-preset' class='btn btn-danger' title="reload preset list">
-                        <i class="glyphicon glyphicon-refresh white"></i>
-                    </button>
-                    <button class='btn btn-success disabled' id='select-preset'>Load</button>
-                    <button class='btn btn-warning disabled' id='delete-preset'>Delete</button>
-
-                    <form action="" id='saved-presets'>
-                        <div id="saved-preset-selection">
-                            <select id='preset-list' size='10' class='form-control'></select>
                         </div>
                     </form>
                 </div>

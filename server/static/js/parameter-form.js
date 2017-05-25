@@ -45,8 +45,6 @@ function sendPlotRequestFromUserInput() {
 // Creates the required input fields based on the selected model
 function generateModelParameters(data_file, model, cols, parameters) {
     $('#parameter-selection').empty();
-//    var newP = generateParagraph("Select parameters:");
-//    $('#parameter-selection').append(newP);
 
     //go over all the model parameters, generate an input field and fill in the input parameters
     $.each(parameters, function (key, parameter_data) {
@@ -62,14 +60,19 @@ function generateModelParameters(data_file, model, cols, parameters) {
             // and allow the user to select a specific value
             getInputField(key).on('input', function () {
                 // The field key is the datalist ID
-                if (findInDatalist(key, this.value)) { // if option exists
-                    updateNotification('Requesting values of column ' + this.value + ' from server');
-                    asyncGetValues(data_file, this.value, function (sub_parameters) {
-                        addFilterByValueInput(key, parameter_data, sub_parameters);
-                    });
-                }
+                return handleFillFilterByValue(data_file, parameter_data, key, this.value);
             });
         }
+    });
+}
+
+
+function handleFillFilterByValue(data_file, parameter_data, key, value) {
+    if (!findInDatalist(key, value))
+        return; // if option does not exists
+    updateNotification('Requesting values of column ' + value + ' from server');
+    return asyncGetValues(data_file, value, function (sub_parameters) {
+        addFilterByValueInput(key, parameter_data, sub_parameters);
     });
 }
 
@@ -113,30 +116,16 @@ function findInDatalist(id, value) {
 // ##################################################################
 
 
-function fetchFormSingleParameter(key, value) {
+function fetchFormSingleParameter(key, param_data) {
     var item = getInputField(key);
     var selectedValue = undefined;
 
-    switch (value.type) {
+    switch (param_data.type) {
         case 'single':
-            // If we allow user to select a value in the column, send the column + value
-            selectedValue = item.val();
-            break;
         case 'multiple':
-            // Get all the selected values
-            selectedValue = [];
-            item.find(":selected").each(function (i, selected) {
-                selectedValue[i] = $(selected).text();
-            });
-            break;
         case 'radio':
-            return item.val();
         case 'checkbox':
-            // Get all the checked values
-            selectedValue = [];
-            item.find(":selected").each(function (i, checked) {
-                selectedValue[i] = $(checked).text();
-            });
+            selectedValue = item.val();
             break;
         case 'range':
             //add handling
@@ -145,23 +134,63 @@ function fetchFormSingleParameter(key, value) {
             return undefined;
     }
 
-    if(value.filterByValue) {
+    if(param_data.filterByValue) {
         var valSelectItem = getInputField(key + "-val-select");
-
-        switch(value.filterByValue.type) {
+        var filterSelectedValue = valSelectItem.val();
+        
+        switch(param_data.filterByValue.type) {
             case 'single':
-                var filterSelectedValue = valSelectItem.val();
-                return [selectedValue, [filterSelectedValue]];
-            case 'multiple':
-                var allFilterSelectedValues = [];
-                valSelectItem.find(":selected").each(function (i, selected) {
-                    allFilterSelectedValues[i] = $(selected).text();
-                });
-                return [selectedValue, allFilterSelectedValues];
+            case 'radio':
+                filterSelectedValue = [filterSelectedValue];
+                break;
         }
+        return [selectedValue, filterSelectedValue];
     }
 
     return selectedValue;
+}
+
+
+function setFormSingleParameter(key, param_data, set_value) {
+    var item = getInputField(key);
+    
+    var filterValue;
+    if(param_data.filterByValue) {
+        filterValue = set_value[1];
+        set_value = set_value[0];
+    }
+
+    switch (param_data.type) {
+        case 'single':
+        case 'multiple':
+        case 'radio':
+        case 'checkbox':
+            item.val(set_value);
+            break;
+        case 'range':
+            //add handling
+            return undefined;
+        default:
+            return undefined;
+    }
+    
+    if(param_data.filterByValue) {
+        $.when(handleFillFilterByValue(state.selectedDataFile, param_data, key, set_value)).then(function(){
+            var valSelectItem = getInputField(key + "-val-select");
+            valSelectItem.val(filterValue);
+        });
+    }
+}
+
+
+function setFormParameters(set_data, name) {
+    $.each(state.selectedModelParameters, function (key, param_data) {
+        setFormSingleParameter(key, param_data, set_data[key]);
+    });
+    
+    if(name != undefined && name != '') {
+        $("#new-preset-name").val(name);
+    }
 }
 
 
@@ -170,8 +199,8 @@ function fetchFormParameters() {
     var modelParam = {};
 
     // For each parameter, fill the json with the actual value
-    $.each(state.selectedModelParameters, function (key, value) {
-        modelParam[key] = fetchFormSingleParameter(key, value);
+    $.each(state.selectedModelParameters, function (key, param_data) {
+        modelParam[key] = fetchFormSingleParameter(key, param_data);
     });
 
     return {
@@ -186,22 +215,15 @@ function isParameterValid(key, value) {
 
     switch (value.type) {
         case 'single':
+        case 'radio':
             isValid = item.val() != '';
             break;
         case 'multiple':
-            isValid = item.find(":selected").length > 0;
-            break;
-        case 'radio':
-           isValid = item.val() != '';
         case 'checkbox':
-            // Get all the checked values
-            var allCheckedValues = [];
-            item.find(":selected").each(function (i, checked) {
-                allCheckedValues[i] = $(checked).text();
-            });
+            isValid = item.val().length > 0;
             break;
         case 'range':
-            //add handling
+            isValid = false;
             break;
     }
 
@@ -214,7 +236,7 @@ function isParameterValid(key, value) {
                 isValid = valSelectItem.val() != '';
                 break;
             case 'multiple':
-                isValid = valSelectItem.find(":selected").length > 0;
+                isValid = valSelectItem.val().length > 0;
                 break;
         }
 
@@ -232,8 +254,8 @@ function isParameterValid(key, value) {
 function isParametersFormValid() {
     var isValid = true;
     //for each parameter,  fill the json with the actual value
-    $.each(state.selectedModelParameters, function (key, value) {
-        isValid = isParameterValid(key, value);
+    $.each(state.selectedModelParameters, function (key, param_data) {
+        isValid = isParameterValid(key, param_data);
         // Don't break. Check all fields.
     });
 

@@ -180,12 +180,16 @@ def preset_load():
     data_file = request.get_json(force=True)
     presets = internals.get_presets()
 
-    if not data_file: # Empty message return all presets
-        res = {p['name']: p['json'] for p in presets}
-    else:
+    res = {
+        'presets': {p['name']: p['json'] for p in presets},
+        'applicable': []
+    }
+
+    if data_file: # Empty message return all presets
         data = DataSource(data_file, config['export_folder'])
         data_columns = set(data.column_names)
-        res = {p['name']: p['json'] for p in presets if data_columns.issuperset(p['items'])}
+        res['applicable'] = [p['name'] for p in presets if data_columns.issuperset(p['items'])]
+
     return Response(json.dumps(res), mimetype='application/json')
 
     

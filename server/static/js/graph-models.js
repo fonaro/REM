@@ -17,6 +17,8 @@ $(document).ready(function () {
         $(window).resize(function() {
             maxHeight('#right-panel');
         });
+        
+        state.updateListPlugin(false);
     } catch (e) {
         updateError(e.message);
     }

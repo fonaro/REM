@@ -26,6 +26,7 @@ $(document).ready(function () {
 
         // Reloads the page when clicking on the logo
         $('#logo').on('click', function() {
+            location.hash = "";
             location.reload();
         });
 
@@ -101,6 +102,9 @@ function initFileTreeView() {
                 (this.get_type(a) >= this.get_type(b) ? 1 : -1);
         },
         'types': {
+            'default': {
+              a_attr: {style: 'color: white'}  
+            },
             'a-up-dir': {
                 icon: 'glyphicon glyphicon-chevron-left',
                 state: {'opened': false},

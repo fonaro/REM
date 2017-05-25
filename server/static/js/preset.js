@@ -14,8 +14,9 @@ $(document).ready(function () {
             maxHeight('#preset-explorer', "#explorer-control");
         });
         
-        // Preset explorer click event
-        $('#preset-jstree').bind("click.jstree", handleSelectTreePreset);
+        // Preset explorer double click event
+        $('#preset-jstree').bind("dblclick.jstree", handleSelectTreePreset);
+        $('#preset-jstree').bind("click.jstree", handleEditTreePreset);
         $('#preset-jstree').bind("hover_node.jstree", function(e, data) {
             var presetName = data.node.id;
             var info = state.getPresetInfo(presetName);
@@ -40,17 +41,6 @@ $(document).ready(function () {
             $("#preset-info").hide();
         });
         
-        // Listener to preset select button
-        $('#preset-list').change(function () {
-            $('#select-preset').removeClass('disabled');
-            $('#delete-preset').removeClass('disabled');
-        });
-
-        // Listener to preset select button
-        $('#select-preset').click(handleSelectPreset);
-        $('#preset-list').dblclick(handleSelectPreset);
-        $('#preset-list').click(handleShowPreset);
-
         // Save dialog functions
         $('#save-preset').click(function () {
             var presetName = $('#new-preset-name').val();
@@ -61,13 +51,11 @@ $(document).ready(function () {
         });
 
         $('#delete-preset').click(function () {
-            var presetName = selectedPresetName();
+            var presetName = $("#new-preset-name").val();
             deletePresets([presetName])
         });
 
         $('#reload-preset').click(state.updatePresets);
-        
-        $('.nav-pills a[href="#preset-selection"]').tab('show');
     } catch (e) {
         updateError(e.message);
     }
@@ -86,71 +74,18 @@ function savePreset(name, parameters) {
     ).then(state.updatePresets);
 }
 
-
-// Return the selected preset name
-function selectedPresetName() {
-    return $('#preset-list').val();
-}
-
-
 // Handles user preset selection
 function handleSelectPreset() {
     var presetName = selectedPresetName();
     state.selectPreset(presetName);
 }
 
-
-function handleShowPreset() {
-    var presetName = selectedPresetName();
-    var info = state.getPresetInfo(presetName);
-    var info = JSON.stringify(state.getPresetInfo(presetName), undefined, 4);
-    $("#preset-info").html(syntaxHighlight(info)).show();
-}
-
-
-// Update the preset list view
-function updatePresetList(presets) {
-    updatePresetView(presets);
-    var result = [];
-
-    // Will display the name, followed by spaces, and the preset values
-    for (var key in presets) {
-        result.push(key);
-    }
-
-    fillListParameters($('#preset-list'), result);
-    $("#preset-info").empty();//.hide();
-}
-
-// Syntac highligting for json
-// https://stackoverflow.com/a/7220510/2570677
-function syntaxHighlight(json) {
-    if (!json) {
-        return "";
-    }
-    
-    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-        var cls = 'number';
-        if (/^"/.test(match)) {
-            if (/:$/.test(match)) {
-                cls = 'key';
-            } else {
-                cls = 'string';
-            }
-        } else if (/true|false/.test(match)) {
-            cls = 'boolean';
-        } else if (/null/.test(match)) {
-            cls = 'null';
-        }
-        return '<span class="' + cls + '">' + match + '</span>';
-    });
-}
-
-
 // Find the selected preset
 function handleSelectTreePreset() {
     var node = $('#preset-jstree').jstree('get_selected', true)[0];
+    if(node == undefined) {
+        return;
+    }
     switch (node.type) {
         case 'a-create':
             $('.nav-pills a[href="#parameter-selection-view"]').tab('show');
@@ -162,20 +97,42 @@ function handleSelectTreePreset() {
     }
 }
 
+function handleEditTreePreset() {
+    var node = $('#preset-jstree').jstree('get_selected', true)[0];
+    if(node == undefined) {
+        return;
+    }
+    switch (node.type) {
+        case 'b-new-preset':
+            break;
+        case 'c-preset':
+        case 'z-gray-preset':
+            var preset_info = state.getPresetInfo(node.id);
+            $.when(state.selectGraphModel(preset_info.graph_type)).then(function() {
+                setFormParameters(preset_info.parameters, node.id);
+                $('#parameters-form').trigger('change');
+                $('.nav-pills a[href="#parameter-selection-view"]').tab('show');
+            });
+            return;
+        case 'a-create':
+        default:
+            state.resetListPlugin();
+            return;
+    }
+    
+    $('.nav-pills a[href="#parameter-selection-view"]').tab('show');
+}
+
 
 // Update the presets in the view
-function updatePresetView(presets, new_presets) {
-    var result = [];
-    
-    result.push({
-        text: "Create New...",
-        children: false,
-        type: 'a-create',
-    });
+function updatePresetView(presets, applicable, new_presets) {
+    var main_nodes = [];
+    var new_nodes = [];
+    var other_nodes = [];
     
     if(new_presets != undefined) {
         for (var key in new_presets) {
-            result.push({
+            new_nodes.push({
                 text: key,
                 children: false,
                 id: key,
@@ -184,20 +141,42 @@ function updatePresetView(presets, new_presets) {
         }
     }
     
+    main_nodes.push({
+        text: "Create New...",
+        children: new_nodes,
+        type: 'a-create',
+    });
+    
     for (var key in presets) {
-        result.push({
-            text: key,
-            children: false,
-            id: key,
-            type: 'c-preset',
-            li_attr: {class: "preset-item"},
+        if (applicable.indexOf(key) != -1) {
+            main_nodes.push({
+                text: key,
+                children: false,
+                id: key,
+                type: 'c-preset',
+            });
+        } else {
+            other_nodes.push({
+                text: key,
+                children: false,
+                id: key,
+                type: 'z-gray-preset',
+            });
+        }
+    }
+    
+    if(other_nodes.length > 0) {
+        main_nodes.push({
+            text: "Unapplicable Presets",
+            children: other_nodes,
+            type: 'z-all',
         });
     }
     
-    $('#preset-jstree').jstree(true).settings.core.data = result;
+    $('#preset-jstree').jstree(true).settings.core.data = main_nodes;
     $('#preset-jstree').jstree(true).refresh();
+    $('#reload-preset').removeClass('disabled');
     
-    //switch to graph display tab
     $('.nav-pills a[href="#preset-explorer"]').tab('show');
 }
 
@@ -223,19 +202,33 @@ function initPresetTreeView() {
                 (this.get_type(a) >= this.get_type(b) ? 1 : -1);
         },
         'types': {
+            'default': {
+              a_attr: {style: 'color: white'}  
+            },
             'a-create': {
                 icon: 'glyphicon glyphicon-plus-sign',
-                state: {'opened': false},
+                state: {'opened': true},
                 li_attr: {style: 'background: green'}
             },
             'b-new-preset': {
                 icon: 'glyphicon glyphicon-stats',
                 state: {'opened': false},
-                li_attr: {style: 'background: darkred'}
+                li_attr: {style: 'background: darkred'},
+                a_attr: {style: 'color: green'}
             },
             'c-preset': {
                 icon: 'glyphicon glyphicon-stats',
-                state: {'opened': false}
+                state: {'opened': false},
+            },
+            'z-all': {
+                icon: 'glyphicon glyphicon-folder-close',
+                state: {'opened': false},
+                a_attr: {style: 'color: gray'}
+            },
+            'z-gray-preset': {
+                icon: 'glyphicon glyphicon-stats',
+                state: {'opened': false},
+                a_attr: {style: 'color: gray'}
             }
         },
         'unique': {
@@ -245,4 +238,35 @@ function initPresetTreeView() {
         },
         'plugins': ['state', 'dnd', 'sort', 'types', 'unique', 'wholerow']
     })
+}
+
+
+// ##################################################################################
+// # Helper Functions
+// ##################################################################################
+
+
+// Syntac highligting for json
+// https://stackoverflow.com/a/7220510/2570677
+function syntaxHighlight(json) {
+    if (!json) {
+        return "";
+    }
+    
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        var cls = 'number';
+        if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+                cls = 'key';
+            } else {
+                cls = 'string';
+            }
+        } else if (/true|false/.test(match)) {
+            cls = 'boolean';
+        } else if (/null/.test(match)) {
+            cls = 'null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+    });
 }

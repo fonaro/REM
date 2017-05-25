@@ -21,6 +21,7 @@ var state = new function () {
 
     // Preset
     this.presets = {}; // The loaded presets (from the server)
+    this.applicable_presets = [];
 
     var self = this;
 
@@ -81,8 +82,12 @@ var state = new function () {
         return asyncListPlugin(do_reload, function(modelList) {
             updateFinishLoading("Received models.");
             self.modelList = modelList;
-            createModulesListView(self.modelList);
+            self.resetListPlugin();
         }, serverErrorHandler);
+    };
+    
+    this.resetListPlugin = function() {
+        createModulesListView(self.modelList);
     };
     
     // Select a graph model (name)
@@ -98,7 +103,6 @@ var state = new function () {
                 self.selectedModelParameters);
         }, serverErrorHandler);
     };
-    
     
     this.getPresetInfo = function (presetName) {
         return self.presets[presetName];
@@ -128,8 +132,9 @@ var state = new function () {
     // Requests the preset list from the server - used to fill the 'load' section
     this.updatePresets = function () {
         return asyncLoadPresets(self.selectedDataFile, function (data) {
-            self.presets = data;
-            updatePresetList(self.presets);
+            self.presets = data.presets;
+            self.applicable_presets = data.applicable;
+            updatePresetView(self.presets, self.applicable_presets);
         }, serverErrorHandler);
     };
 };
