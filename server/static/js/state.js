@@ -87,6 +87,7 @@ var state = new function () {
     };
     
     this.resetListPlugin = function() {
+        self.selectedModel = null;
         createModulesListView(self.modelList);
     };
     

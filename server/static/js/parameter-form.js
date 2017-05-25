@@ -8,10 +8,10 @@ $(document).ready(function () {
     try {
         $('#param-select').click(sendPlotRequestFromUserInput);
 
-        $('#parameters-form').change(function () {
+        $('#parameters-form,#models-form').change(function () {
             if (isParametersFormValid()) {
                 $('#param-select').removeClass('disabled');
-                if($("#new-preset-name").val().length < 4) {
+                if ($("#new-preset-name").val().length < 4) {
                     $('#save-preset').addClass('disabled');
                 } else {
                     $('#save-preset').removeClass('disabled');
@@ -19,6 +19,12 @@ $(document).ready(function () {
             } else {
                 $('#param-select').addClass('disabled');
                 $('#save-preset').addClass('disabled');
+            }
+
+            if ($("#new-preset-name").val().length == 0) {
+                $('#delete-preset').addClass('disabled');
+            } else {
+                $('#delete-preset').removeClass('disabled');
             }
         });
 
@@ -252,6 +258,9 @@ function isParameterValid(key, value) {
 
 // Returns true if form is filled, and false otherwise
 function isParametersFormValid() {
+    if(state.selectedModel == undefined || state.selectedModel == null) {
+        return false;
+    }
     var isValid = true;
     //for each parameter,  fill the json with the actual value
     $.each(state.selectedModelParameters, function (key, param_data) {

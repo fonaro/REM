@@ -41,6 +41,7 @@
 
 <!-- floats -->
 <pre id="preset-info" hidden></pre>
+<div id='server-success' hidden></div>
 
 <!-- header -->
 <div id="top-part">
@@ -54,10 +55,8 @@
     <button id="toggle-explorer" class="btn btn-info">
         <i class="glyphicon glyphicon-list white"></i>
     </button>
-    <!-- display the current directory -->
-    <p id='curr-dir'></p>
     <!-- display the currently selected experiment -->
-    <p id='selected-exp'></p>
+    <p id='selected-exp'>&emsp;</p>
 </div>
 
 <div class="container-fluid main">
@@ -76,7 +75,11 @@
             <!-- tab contents -->
             <div class="tab-content">
                 <div id="file-explorer" class="tab-pane active">
-                    <div id="file-jstree"></div>
+                    <!-- display the current directory -->
+                    <div id='curr-dir'>&emsp;</div>
+                    <div id="file-explorer-container">
+                        <div id="file-jstree"></div>
+                    </div>
                 </div>
                 <div id="preset-explorer" class="tab-pane fade">
                     <div id="preset-jstree"></div>
@@ -97,8 +100,6 @@
                 <div id="err-msg" class="error-block"></div>
                 <div id="err-traceback" class="error-block"></div>
             </div>
-            <!--<div id='loader' class="loader"></div>-->
-            <div id='server-success'></div>
 
             <!-- tab contents -->
             <div class="tab-content">
@@ -111,7 +112,7 @@
                             </button>
                             <button class='btn btn-success disabled' id='param-select'>Plot</button>
                             <button id='save-preset' class='btn btn-primary disabled'>Save</button>
-                            <button id='delete-preset' class='btn btn-warning'>Delete</button>
+                            <button id='delete-preset' class='btn btn-warning disabled'>Delete</button>
                             <div class="form-group row">
                                 <label for="new-preset-name" class="col-xs-2">Preset name</label>
                                 <input id="new-preset-name" class="col-xs-8" placeholder="E.g.- 'my preset'"/>
@@ -123,7 +124,6 @@
                     </form>
                     <hr>
                     <form action="" id='parameters-form'>
-
                         <div id="parameter-selection">
                         </div>
                     </form>

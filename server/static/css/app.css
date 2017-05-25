@@ -87,8 +87,12 @@ h1{
 
 
 /*file explorer definitions*/
-#file-explorer{
+#file-explorer-container{
 	overflow-y: auto;
+}
+
+#file-explorer {
+    overflow: hidden;
 }
 
 #proj-select{
@@ -106,7 +110,8 @@ h1{
 	padding: 7px;
 	margin: 0;
 	background-color: #505050;
-	float: left;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 #selected-exp{
@@ -115,7 +120,7 @@ h1{
 	margin: 0;
 
 	overflow: hidden;
-	background-color: #3db1c8;
+	background-color: darkslategray; /*#3db1c8;*/
 }
 
 #graph-display {
@@ -253,10 +258,15 @@ input{
 }
 
 #server-success{
-	border-radius: 5px;
-	background-color: rgba(255,255,255,0.1);
-	padding: 5px;
-	text-align: center;
+    border-radius: 0 0 5px 5px;
+    background-color: rgba(255,255,255,0.7);
+    padding: 5px;
+    position: fixed;
+    text-align: center;
+    top: 0;
+    left: 0;
+    right: 0;
+    color: black;
 }
 
 #preset-list,select{

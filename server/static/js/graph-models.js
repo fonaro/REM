@@ -29,6 +29,7 @@ $(document).ready(function () {
 function createModulesListView(modelsData) {
     $('#model-list').empty();
     $('#parameter-selection').empty();
+    $('#new-preset-name').val("");
 
     $.each(modelsData, function (modelName, modelImage) {
         //generate li element with image and model name

@@ -6,16 +6,13 @@
 // On document ready
 $(document).ready(function () {
     try {
-        // Hide unnecesary information
-        $('#selected-exp').hide();
-
         // Draw the initial file explorer tree
         initFileTreeView();
 
         // Fixes explorer height to fill whole screen
-        maxHeight('#file-explorer', "#explorer-control");
+        maxHeight('#file-explorer-container', "#explorer-control,#curr-dir");
         $(window).resize(function() {
-            maxHeight('#file-explorer', "#explorer-control");
+            maxHeight('#file-explorer-container', "#explorer-control,#curr-dir");
         });
 
         $("#explorer-wrapper").resizable({
@@ -77,7 +74,14 @@ function updateSelectedFileView(data_file_path) {
 function updateDirView(curDir, data_json) {
     $('#file-jstree').jstree(true).settings.core.data = data_json;
     $('#file-jstree').jstree(true).refresh();
-    $('#curr-dir').html(curDir);
+    
+    var dir_elem = $('#curr-dir');
+    dir_elem.attr('title', curDir);
+    dir_elem.html(curDir);
+    while(dir_elem[0].scrollWidth > dir_elem[0].clientWidth) {
+        curDir = curDir.substring(10);
+        dir_elem.html("..." + curDir);
+    }
 }
 
 
@@ -131,7 +135,7 @@ function initFileTreeView() {
 
 function getElementsHeight(elements) {
     var elementsHeight = 0;
-    $("#top-part,#location-part,#notification").add(elements).outerHeight(function(i, h){
+    $(elements).outerHeight(function(i, h){
         elementsHeight += h;
     });
     return elementsHeight;
@@ -140,7 +144,7 @@ function getElementsHeight(elements) {
 
 // Fixes the height of elements in the middle view
 function maxHeight(div, limiting_elements, padding) {
-    var remaining_height = $(window).height() - getElementsHeight(limiting_elements);
+    var remaining_height = $(window).height() - getElementsHeight("#top-part,#location-part,#notification") - getElementsHeight(limiting_elements);
     if(padding)
         remaining_height -= padding;
     $(div).height(remaining_height);
