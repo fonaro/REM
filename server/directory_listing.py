@@ -34,7 +34,7 @@ def get_subtree(path):
 
     for d in filter_folders(dirs):
         yield {'text': d,
-               'children': True if os.listdir(os.path.join(path, d)) else False,
+               'children': False,
                'id': os.path.join(path, d),
                'type': 'b-folder',
                }
