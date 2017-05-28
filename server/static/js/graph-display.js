@@ -25,8 +25,14 @@ function displayGraph(data) {
 
     var div = data.div;
     var js = data.js;
-
-    $("#graph-display").append(div);
+    
+    if(Array.isArray(div)) {
+        for(var i in div) {
+            $("#graph-display").append(div[i]);
+        }
+    } else {
+        $("#graph-display").append(div);
+    }
     eval(js);
     
     //switch to graph display tab
