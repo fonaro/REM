@@ -26,10 +26,10 @@ class DataSource(object):
     valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
 
     def __init__(self, file_path, export_path="exports"):
-        if isinstance(file_path, str):
-            raise Exception("Wrong type to file path: %s" % file_path)
         if not file_path:
             raise Exception("No data file")
+
+        file_path = str(file_path)
         if not os.path.isfile(file_path):
             raise Exception("Data file '%s' not found" % file_path)
 
