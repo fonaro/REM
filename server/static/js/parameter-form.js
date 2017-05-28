@@ -61,37 +61,37 @@ function generateModelParameters(data_file, model, cols, parameters) {
         $('#parameter-selection').append(formDiv);
 
         //if we want to add an option to select a specific value
-        if (parameter_data.filterByValue) {
+        if (parameter_data.filter) {
             // When the column is selected, fetch the actual parameters from the server
             // and allow the user to select a specific value
             getInputField(key).on('input', function () {
                 // The field key is the datalist ID
-                return handleFillFilterByValue(data_file, parameter_data, key, this.value);
+                return handleFillFilter(data_file, parameter_data, key, this.value);
             });
         }
     });
 }
 
 
-function handleFillFilterByValue(data_file, parameter_data, key, value) {
+function handleFillFilter(data_file, parameter_data, key, value) {
     if (!findInDatalist(key, value))
         return; // if option does not exists
     updateNotification('Requesting values of column ' + value + ' from server');
     return asyncGetValues(data_file, value, function (sub_parameters) {
-        addFilterByValueInput(key, parameter_data, sub_parameters);
+        addFilterInput(key, parameter_data, sub_parameters);
     });
 }
 
 
 // When receiving the sepecific column actual parameters,
 // creates a dropdown with said parameters allowing the user to select by value
-function addFilterByValueInput(key, parameter_data, sub_parameters) {
+function addFilterInput(key, parameter_data, sub_parameters) {
     updateNotification('Received values from server; generating sub-input field');
     // Remove old isntance
     getInputField(key + '-val-select').remove();
 
     // Create new input field and populate it
-    var type = parameter_data.filterByValue.type;
+    var type = parameter_data.filter.type;
     var input = generateInputField(key + '-val-select', type, sub_parameters, false);
     
     getInputField(key).after(input);
@@ -140,11 +140,11 @@ function fetchFormSingleParameter(key, param_data) {
             return undefined;
     }
 
-    if(param_data.filterByValue) {
+    if(param_data.filter) {
         var valSelectItem = getInputField(key + "-val-select");
         var filterSelectedValue = valSelectItem.val();
         
-        switch(param_data.filterByValue.type) {
+        switch(param_data.filter.type) {
             case 'single':
             case 'radio':
                 filterSelectedValue = [filterSelectedValue];
@@ -161,7 +161,7 @@ function setFormSingleParameter(key, param_data, set_value) {
     var item = getInputField(key);
     
     var filterValue;
-    if(param_data.filterByValue) {
+    if(param_data.filter) {
         filterValue = set_value[1];
         set_value = set_value[0];
     }
@@ -180,8 +180,8 @@ function setFormSingleParameter(key, param_data, set_value) {
             return undefined;
     }
     
-    if(param_data.filterByValue) {
-        $.when(handleFillFilterByValue(state.selectedDataFile, param_data, key, set_value)).then(function(){
+    if(param_data.filter) {
+        $.when(handleFillFilter(state.selectedDataFile, param_data, key, set_value)).then(function(){
             var valSelectItem = getInputField(key + "-val-select");
             valSelectItem.val(filterValue);
         });
@@ -234,10 +234,10 @@ function isParameterValid(key, value) {
     }
 
     var isFilterValid = true;
-    if(isValid && value.filterByValue && value.filterByValue.required) {
+    if(isValid && value.filter && value.filter.required) {
         var valSelectItem = getInputField(key + "-val-select");
 
-        switch(value.filterByValue.type) {
+        switch(value.filter.type) {
             case 'single':
                 isValid = valSelectItem.val() != '';
                 break;

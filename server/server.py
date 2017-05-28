@@ -209,7 +209,7 @@ def preset_save():
     plugin_parameters = plugins.get_plugin_parameters(graph_type)
     for key, param in parameters.items():
         item_desc = plugin_parameters[key]
-        if item_desc.get('filterByValue', None):
+        if item_desc.get('filter', None):
             # Get only the column(s) name (not the values)
             param = param[0]
 

@@ -9,6 +9,10 @@ from bokeh.io import save
 from bokeh.palettes import Set1_9
 from collections import OrderedDict
 
+
+__COLORS__ = list(Set1_9)
+
+
 def description():
     return "Line Plot"
 
@@ -20,7 +24,7 @@ def parameters():
     params['y_axis'] = {'label': 'Y axis', 'type': 'single',
                         'required': True}
     params['group_by'] = {'label': "Group By", 'type': 'single',
-                          'required': True, 'filterByValue': {
+                          'required': True, 'filter': {
         'type': 'multiple',
         'required': False
     }}
@@ -32,37 +36,33 @@ def image_path():
 
 
 def plot(data, x_axis, y_axis, group_by):
-    group_by, values = group_by
-    if type(values) != list:
-        values = [values]
-    if not values:
-        # If no value is selected, use all.
-        values = data.get_distinct_values(group_by)
+    group_by, filter_values = group_by
+    if type(filter_values) != list:
+        filter_values = [filter_values]
 
-    # figure_name = 'line'
-    colors = list(Set1_9)
-    parameters = []
-    for i, val in enumerate(values):
-        parameters.append({'col':group_by, 'value':val,
-                           'x':x_axis, 'y':y_axis,
-                           'color':colors[i%9]}) # , 'color':'red'
+    fig = plotting.figure(sizing_mode='stretch_both',  # title=figure_name,
+                          x_axis_label=x_axis, y_axis_label=y_axis,
+                          tools=['hover', 'crosshair', 'wheel_zoom', 'box_zoom', 'pan',
+                                 'save', 'resize', 'reset'])
 
-    fig = plotting.figure(sizing_mode='stretch_both', #title=figure_name,
-                          x_axis_label=x_axis ,y_axis_label=y_axis ,
-                          tools=['hover','crosshair','wheel_zoom','box_zoom','pan',
-                                 'save','resize','reset'])
-
+    dump = pd.DataFrame()
     with data.db_connection() as conn:
-        dump = pd.DataFrame()
-        for params in parameters:
-            # Take only rows that contain these columns
-            frame_slice = pd.read_sql_query(
-                "select `{x}`,`{y}`,`{col}` from data where `{x}` != '' and `{y}` != '' and `{col}` = '{value}' order by `{x}` asc".format(**params),
-                conn)
+        frame_slice = pd.read_sql_query(
+            "select `{x}`,`{y}`,`{g}` from data "
+            "where `{x}` != '' and `{y}` != '' "
+            "order by `{x}` asc".format(x=x_axis, y=y_axis, g=group_by), conn)
+        for i, (group, frame_slice) in enumerate(frame_slice.groupby(group_by)):
+            if filter_values and group not in filter_values:
+                continue
+            color = __COLORS__[i % len(__COLORS__)]
+            data_source = plotting.ColumnDataSource(frame_slice)
+
             dump = dump.append(frame_slice)
-            fig.line(source=plotting.ColumnDataSource(frame_slice),
-                     x=params['x'],y=params['y'], line_width=2, legend=params['col'],
-                     color=params['color'])
+            fig.line(source=data_source,
+                     x=x_axis, y=y_axis, line_width=2,
+                     legend=group_by, color=color, muted_alpha=0.2)
+
+    fig.legend.click_policy = "hide"
 
     json_file_path = data.export_file_path("json", "line", x_axis, y_axis)
     dump = dump.reset_index(drop=True)

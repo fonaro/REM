@@ -25,7 +25,7 @@ def parameters():
     params['y_axis'] = {'label': 'Y axis', 'type': 'single',
                         'required': True}
     params['group_by'] = {'label': "Group By", 'type': 'single',
-                          'required': True, 'filterByValue': {
+                          'required': True, 'filter': {
         'type': 'multiple',
         'required': False
     }}
