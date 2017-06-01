@@ -182,29 +182,28 @@ class DataSource(object):
         dic['timestamp'] = float(time)
         return dic
 
-    def analyze(self, start_pos):
-        """
-        Parse and analyzes the data file and creates an SQL db file with the data
-        """
-
-        # Read the data file and parse it into a list of dicts
-        dictlist = []
+    def iter_analyze_all_lines(self, start_pos):
+        """ Read the data file and parse it into a iterator of dicts """
         with open(self.__data_file) as inp:
             inp.seek(start_pos)
             for line in inp:
                 res = self.analyze_line(line)
                 if res:
-                    dictlist.append(res)
+                    yield res
 
-        # Turn data into a DataFrame
-        frame = pd.DataFrame(dictlist)
+    def analyze(self, start_pos):
+        """
+        Parse and analyzes the data file and creates an SQL db file with the data
+        """
+        # Create a DataFrame of the parsed data
+        frame = pd.DataFrame(self.iter_analyze_all_lines(start_pos))
         frame.sort_values('timestamp', inplace=True)
         data_file_stats = os.stat(self.__data_file)
 
         try:
             with self.db_connection() as conn:
-                pd.DataFrame(frame.columns).to_sql('columns',conn,if_exists='replace',index= False)
-                frame.to_sql('data', conn, if_exists='append', index= False)
+                pd.DataFrame(frame.columns).to_sql('columns', conn, if_exists='replace', index=False)
+                frame.to_sql('data', conn, if_exists='append', index=False)
 
                 attribute_data = pd.DataFrame(
                     [{'size': data_file_stats.st_size, 'timestamp': data_file_stats.st_mtime}])
