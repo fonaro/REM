@@ -1,5 +1,13 @@
 docs/* linguist-documentation
 example-data/* linguist-documentation
-server/static/lib/* linguist-vendored
-server/static/dist/* linguist-vendored
 
+server/static/lib/css/* linguist-vendored
+server/static/lib/js/* linguist-vendored
+server/static/lib/js/libs/* linguist-vendored
+server/static/lib/js/themes/default/* linguist-vendored
+server/static/lib/js/themes/default-dark/* linguist-vendored
+server/static/lib/fonts/* linguist-vendored
+server/static/dist/* linguist-vendored
+server/static/dist/libs/* linguist-vendored
+server/static/dist/themes/default/* linguist-vendored
+server/static/dist/themes/default-dark/* linguist-vendored
