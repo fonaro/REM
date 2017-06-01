@@ -240,4 +240,4 @@ def preset_delete():
 # Main
 ################################################################
 if __name__ == '__main__':
-    app.run(app.config['hostname'], port=app.config['port'], threaded=True)
+    app.run(app.config['hostname'], port=app.config['port'])#, threaded=True)
