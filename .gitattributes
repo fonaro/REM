@@ -1,0 +1,5 @@
+docs/* linguist-documentation
+example-data/* linguist-documentation
+server/static/lib/* linguist-vendored
+server/static/dist/* linguist-vendored
+
