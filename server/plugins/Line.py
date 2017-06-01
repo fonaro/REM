@@ -2,6 +2,7 @@
 @editor: Liran Funaro <funaro@cs.technion.ac.il>
 @author: Alex Nulman <anulman@cs.haifa.ac.il>
 """
+import os
 import pandas as pd
 from bokeh import plotting
 from bokeh.embed import components
@@ -35,39 +36,58 @@ def image_path():
     return "img/pluginImg/Line.png"
 
 
-def plot(data, x_axis, y_axis, group_by):
+def fetch_data(data, x_axis, y_axis, group_by):
     group_by, filter_values = group_by
     if type(filter_values) != list:
         filter_values = [filter_values]
 
+    hdf_file_path = data.export_file_path("h5", "line", x_axis, y_axis)
+    try:
+        os.remove(hdf_file_path)
+    except:
+        pass
+    store = pd.HDFStore(hdf_file_path)
+
+    try:
+        with data.db_connection() as conn:
+            frame_slice = pd.read_sql_query(
+                "select `{x}`,`{y}`,`{g}` from data "
+                "where `{x}` != '' and `{y}` != '' "
+                "order by `{x}` asc".format(x=x_axis, y=y_axis, g=group_by), conn)
+
+
+            for group, frame_slice in frame_slice.groupby(group_by):
+                if filter_values and group not in filter_values:
+                    continue
+                del frame_slice[group_by]
+                store.put(str(group), frame_slice, append=False)
+    except:
+        store.close()
+        try:
+            os.remove(hdf_file_path)
+        except:
+            pass
+        return
+    else:
+        return store
+
+
+def plot(data, x_axis, y_axis, group_by):
     fig = plotting.figure(sizing_mode='stretch_both',  # title=figure_name,
                           x_axis_label=x_axis, y_axis_label=y_axis,
                           tools=['hover', 'crosshair', 'wheel_zoom', 'box_zoom', 'pan',
                                  'save', 'resize', 'reset'])
 
-    dump = pd.DataFrame()
-    with data.db_connection() as conn:
-        frame_slice = pd.read_sql_query(
-            "select `{x}`,`{y}`,`{g}` from data "
-            "where `{x}` != '' and `{y}` != '' "
-            "order by `{x}` asc".format(x=x_axis, y=y_axis, g=group_by), conn)
-        for i, (group, frame_slice) in enumerate(frame_slice.groupby(group_by)):
-            if filter_values and group not in filter_values:
-                continue
+    with fetch_data(data, x_axis, y_axis, group_by) as store_data:
+        for i, group in enumerate(store_data):
             color = __COLORS__[i % len(__COLORS__)]
-            data_source = plotting.ColumnDataSource(frame_slice)
-
-            dump = dump.append(frame_slice)
+            data_source = plotting.ColumnDataSource(store_data[group])
+            group_key = group[1:] # Remove leading "/"
             fig.line(source=data_source,
                      x=x_axis, y=y_axis, line_width=2,
-                     legend=group_by, color=color, muted_alpha=0.2)
+                     legend=group_key, color=color, muted_alpha=0.2)
 
     fig.legend.click_policy = "hide"
-
-    json_file_path = data.export_file_path("json", "line", x_axis, y_axis)
-    dump = dump.reset_index(drop=True)
-    dump.to_json(json_file_path)
-    del(dump)
 
     html_file_path = data.export_file_path("html", "line", x_axis, y_axis)
     plotting.output_file(html_file_path, title=data.name,
