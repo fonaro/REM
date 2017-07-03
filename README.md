@@ -30,7 +30,7 @@ sudo apt-get install git python python-dev python-pip
 
 Pull the code from the repository.
 ```
-git checkout git@github.com:nulman/REM.git
+git clone https://github.com/fonaro/REM.git
 ```
 
 Install the requirements.
