@@ -15,9 +15,9 @@ $(document).ready(function () {
         });
         
         // Preset explorer double click event
-        $('#preset-jstree').bind("dblclick.jstree", handleSelectTreePreset);
-        $('#preset-jstree').bind("click.jstree", handleEditTreePreset);
-        $('#preset-jstree').bind("hover_node.jstree", function(e, data) {
+        $('#preset-jstree').on("dblclick.jstree", handleSelectTreePreset);
+        $('#preset-jstree').on("click.jstree", handleEditTreePreset);
+        $('#preset-jstree').on("hover_node.jstree", function(e, data) {
             var presetName = data.node.id;
             var info = state.getPresetInfo(presetName);
             if(info === undefined) {
@@ -37,7 +37,7 @@ $(document).ready(function () {
             $("#preset-info").show();
         });
         
-        $('#preset-jstree').bind("dehover_node.jstree", function(e, data) {
+        $('#preset-jstree').on("dehover_node.jstree", function(e, data) {
             $("#preset-info").hide();
         });
         
@@ -88,7 +88,18 @@ function handleSelectTreePreset() {
     }
     switch (node.type) {
         case 'a-create':
-            $('.nav-pills a[href="#parameter-selection-view"]').tab('show');
+            let create_node = $('#preset-jstree').jstree(true).settings.core.data[0];
+            create_node.state = {'opened': true};
+            let newID = "test-id"; //makeHashID();
+            create_node.children.push({
+                text: "New Preset (1)",
+                children: false,
+                id: newID,
+                type: 'b-new-preset'
+            });
+            $('#preset-jstree').jstree(true).refresh();
+            $('#preset-jstree').jstree(true).deselect_all();
+            $('#preset-jstree').jstree(true).select_node(newID);
             break;
         case 'b-new-preset':
         case 'c-preset':
@@ -108,6 +119,8 @@ function handleEditTreePreset() {
         case 'c-preset':
         case 'z-gray-preset':
             var preset_info = state.getPresetInfo(node.id);
+            if(!preset_info)
+                return;
             $.when(state.selectGraphModel(preset_info.graph_type)).then(function() {
                 setFormParameters(preset_info.parameters, node.id);
                 $('#parameters-form').trigger('change');
@@ -115,6 +128,7 @@ function handleEditTreePreset() {
             });
             return;
         case 'a-create':
+           break;
         default:
             state.resetListPlugin();
             return;
@@ -213,8 +227,8 @@ function initPresetTreeView() {
             'b-new-preset': {
                 icon: 'glyphicon glyphicon-stats',
                 state: {'opened': false},
-                li_attr: {style: 'background: darkred'},
-                a_attr: {style: 'color: green'}
+                li_attr: {style: 'background: #005500'},
+                /*a_attr: {style: 'color: green'}*/
             },
             'c-preset': {
                 icon: 'glyphicon glyphicon-stats',
@@ -236,7 +250,7 @@ function initPresetTreeView() {
                 return name + ' ' + counter;
             }
         },
-        'plugins': ['state', 'dnd', 'sort', 'types', 'unique', 'wholerow']
+        'plugins': ['state', 'dnd', 'sort', 'types', 'unique', 'wholerow', 'search']
     })
 }
 
